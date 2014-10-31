@@ -26,9 +26,9 @@ var specFiles = [
 // Build Lib
 gulp.task('_buildLib', function () {
   return gulp.src(libFiles)
-    .pipe(concat('tgi.core.js'))
+    .pipe(concat('tgi-store-mongodb.js'))
     .pipe(gulp.dest('dist'))
-    .pipe(rename('tgi.core.min.js'))
+    .pipe(rename('tgi-store-mongodb.min.js'))
     .pipe(uglify())
     .pipe(gulp.dest('dist'));
 });
@@ -36,7 +36,7 @@ gulp.task('_buildLib', function () {
 // Build Spec
 gulp.task('_buildSpec', function () {
   return gulp.src(specFiles)
-    .pipe(concat('tgi.core.spec.js'))
+    .pipe(concat('tgi-store-mongodb.spec.js'))
     .pipe(gulp.dest('dist'));
 });
 

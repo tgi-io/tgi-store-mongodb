@@ -1,4 +1,10 @@
 /**---------------------------------------------------------------------------------------------------------------------
+ * tgi-core/lib/misc/lib-header
+ **/
+(function () {
+"use strict";
+var root = this;
+/**---------------------------------------------------------------------------------------------------------------------
  * tgi-store-mongodb/lib/tgi-store-mongodb.source.js
  */
 
@@ -269,3 +275,17 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
     }
   });
 };
+
+/**---------------------------------------------------------------------------------------------------------------------
+ * tgi-core/lib/misc/lib-footer
+ **/
+  /* istanbul ignore next */
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = CORE;
+    }
+    exports.CORE = CORE;
+  } else {
+    root.CORE = CORE;
+  }
+}).call(this);
