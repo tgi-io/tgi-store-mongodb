@@ -12,6 +12,7 @@ var childProcess = require('child_process');
 // Source and _packaging
 var libFiles = [
   'lib/_packaging/lib-header',
+  'node_modules/tgi-core/dist/tgi.core.chunk.js',
   'lib/tgi-store-mongodb.source.js',
   'lib/_packaging/lib-footer'
 ];
@@ -19,6 +20,7 @@ var libFiles = [
 // The Spec
 var specFiles = [
   'lib/_packaging/spec-header',
+  'node_modules/tgi-core/dist/tgi.core.spec.chunk.js',
   'lib/tgi-store-mongodb.spec.js',
   'lib/_packaging/spec-footer'
 ];
