@@ -3,9 +3,10 @@
  **/
 var spec = new Spec();
 (function () {
+  var CORE = MONGODB;
   UTILITY().injectMethods(this);
-  //this.inheritPrototype = UTILITY().inheritPrototype;
-  testSpec(spec, UTILITY);
+  CORE().injectMethods(this);
+  testSpec(spec, CORE);
   spec.runTests(function (msg) {
     /**
      * msg callback events msg.error, msg.log, msg.done

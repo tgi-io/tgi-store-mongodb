@@ -2248,11 +2248,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
           // See integration tests for examples of usage
         });
       } else {
-        if (services['isReady'] && services['canGetList']) {
-          spec.example('returns a List populated from store', Error('Store does not provide getList'), function () {
-            return new SurrogateStore().getList();
-          });
-        } else {
+        if (services['isReady']) {
           spec.example('returns a List populated from store', Error('Store does not provide getList'), function () {
             return new SurrogateStore().getList();
           });
@@ -3004,15 +3000,14 @@ spec.test('lib/tgi-store-mongodb.spec.js', 'MONGODB', '', function (callback) {
     spec.paragraph('The MongoStore handles data storage via MongoDB.');
     spec.heading('CONSTRUCTOR', function () {
       spec.heading('Store Constructor tests are applied', function () {
-        //spec.runnerStoreConstructor(MongoStore,true);
+        spec.runnerStoreConstructor(MongoStore,true);
       });
       spec.example('objects created should be an instance of MongoStore', true, function () {
-        // return new MongoStore() instanceof MongoStore;
-        return new Store() instanceof Store;
+        return new MongoStore() instanceof MongoStore;
       });
     });
     spec.heading('Store tests are applied', function () {
-      //spec.runnerStoreMethods(MongoStore,true);
+      spec.runnerStoreMethods(MongoStore,true);
     });
   });
 });

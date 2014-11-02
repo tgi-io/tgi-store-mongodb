@@ -5,7 +5,7 @@ var Spec = require('tgi-spec/dist/tgi.spec.js');
 var testSpec = require('../dist/tgi-store-mongodb.spec.js');
 var spec = new Spec();
 var UTILITY = require('tgi-utility/dist/tgi.utility');
-var CORE = require('tgi-core/dist/tgi.core');
+var CORE = require('../dist/tgi-store-mongodb.js');
 
 (function () {
   UTILITY().injectMethods(this);

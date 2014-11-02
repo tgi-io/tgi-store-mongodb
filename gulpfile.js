@@ -12,6 +12,7 @@ var childProcess = require('child_process');
 // Source and _packaging
 var libFiles = [
   'lib/_packaging/lib-header',
+  'lib/tgi-store-mongodb.lib.js',
   'node_modules/tgi-core/dist/tgi.core.chunk.js',
   'lib/tgi-store-mongodb.source.js',
   'lib/_packaging/lib-footer'
