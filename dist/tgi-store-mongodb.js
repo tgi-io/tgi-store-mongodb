@@ -1904,7 +1904,7 @@ var MongoStore = function (args) {
 };
 MongoStore.prototype = Object.create(Store.prototype);
 // Methods
-MongoStore.prototype.onConnect = function (location, callBack) {
+MongoStore.prototype.onConnect = function (location, callBack, mongo) {
   if (typeof location != 'string') throw new Error('argument must a url string');
   if (typeof callBack != 'function') throw new Error('argument must a callback');
 
