@@ -9,7 +9,7 @@
     }
   ],
   "dependencies": {
-    "tgi-spec": "*",
+    "tgi-spec": ">=0.1.12",
     "mongodb": ">=1.4.19",
     "tgi-utility": "*",
     "tgi-core": "*"
