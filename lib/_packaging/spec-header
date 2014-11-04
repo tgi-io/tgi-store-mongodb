@@ -5,3 +5,4 @@
 "use strict";
 var root = this;
 var testSpec = function(spec,CORE) {
+spec.mute(true);

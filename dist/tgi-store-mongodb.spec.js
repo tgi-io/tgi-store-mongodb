@@ -5,6 +5,7 @@
 "use strict";
 var root = this;
 var testSpec = function(spec,CORE) {
+spec.mute(true);
 /**---------------------------------------------------------------------------------------------------------------------
  * tgi-core/lib/tgi-core.test.js
  **/
@@ -2995,6 +2996,7 @@ spec.test('tgi-core/lib/stores/tgi-core-store-memory.spec.js', 'MemoryStore', 'v
 /**
  * Doc Intro
  */
+spec.mute(false);
 spec.test('lib/tgi-store-mongodb.spec.js', 'MONGODB', '', function (callback) {
   spec.heading('MongoStore', function () {
     spec.paragraph('The MongoStore handles data storage via MongoDB.');

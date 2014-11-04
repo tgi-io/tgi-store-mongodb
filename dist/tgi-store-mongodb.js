@@ -1911,10 +1911,10 @@ MongoStore.prototype.onConnect = function (location, callBack, mongo) {
   // Open mongo database
   var store = this;
   try {
-    this.mongoServer = new mongo.Server('127.0.0.1', 27017, {auto_reconnect: true});
-    this.mongoDatabase = new mongo.Db('tequilaStore', this.mongoServer, {safe: true});
-    this.mongoDatabaseOpened = false;
-    this.mongoDatabase.open(function (err, db) {
+    store.mongoServer = new mongo.Server('127.0.0.1', 27017, {auto_reconnect: true});
+    store.mongoDatabase = new mongo.Db('tequilaStore', this.mongoServer, {safe: true});
+    store.mongoDatabaseOpened = false;
+    store.mongoDatabase.open(function (err, db) {
       if (err) {
         callBack(store, err);
         try {
