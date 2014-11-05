@@ -30,7 +30,7 @@ var CORE = require('../dist/tgi-store-mongodb.js');
           if (msg.testsFailed || msg.testsPending)
             process.exit(1);
           else
-            process.exit(1);
+            process.exit(0);
         } else if (msg.log) {
           //console.log(msg.log);
         }
