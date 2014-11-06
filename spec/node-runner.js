@@ -21,7 +21,7 @@ var CORE = require('../dist/tgi-store-mongodb.js');
       console.log('mongoStore connected');
       spec.runTests(function (msg) {
         if (msg.error) {
-          console.error(msg.error);
+          console.log('UT OH: ' + msg.error);
           process.exit(1);
         } else if (msg.done) {
           console.log('Testing completed with  ...');

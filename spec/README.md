@@ -1168,7 +1168,7 @@ var delta = new Delta(new Attribute.ModelID(new Model()));
 this.log(delta.dateCreated);
 return delta.dateCreated instanceof Date;
 ```
-<blockquote><strong>log: </strong>Wed Nov 05 2014 19:16:09 GMT-0500 (EST)<br>returns <strong>true</strong> as expected
+<blockquote><strong>log: </strong>Thu Nov 06 2014 17:28:57 GMT-0500 (EST)<br>returns <strong>true</strong> as expected
 </blockquote>
 #### modelID
 &nbsp;<b><i>set from constructor:</i></b>
@@ -1177,7 +1177,7 @@ var delta = new Delta(new Attribute.ModelID(new Model()));
 this.log(delta.dateCreated);
 return delta.modelID.toString();
 ```
-<blockquote><strong>log: </strong>Wed Nov 05 2014 19:16:09 GMT-0500 (EST)<br>returns <strong>ModelID(Model:null)</strong> as expected
+<blockquote><strong>log: </strong>Thu Nov 06 2014 17:28:57 GMT-0500 (EST)<br>returns <strong>ModelID(Model:null)</strong> as expected
 </blockquote>
 #### attributeValues
 &nbsp;<b><i>created as empty object:</i></b>
@@ -2532,7 +2532,7 @@ this.shouldBeTrue(log.get('logType') == 'Text');
 this.shouldBeTrue(log.get('importance') == 'Info');
 this.shouldBeTrue(log.get('contents') == 'what up');
 ```
-<blockquote><strong>log: </strong>Wed Nov 05 2014 19:16:09 GMT-0500 (EST)<br></blockquote>
+<blockquote><strong>log: </strong>Thu Nov 06 2014 17:28:57 GMT-0500 (EST)<br></blockquote>
 #### LOG TYPES
 &nbsp;<b><i>must be valid:</i></b>
 ```javascript
@@ -3322,7 +3322,7 @@ this.shouldBeTrue(typeof services['canPutModel'] == 'boolean');
 this.shouldBeTrue(typeof services['canDeleteModel'] == 'boolean');
 this.shouldBeTrue(typeof services['canGetList'] == 'boolean');
 ```
-<blockquote><strong>log: </strong>{"isReady":false,"canGetModel":true,"canPutModel":true,"canDeleteModel":true,"canGetList":true}<br></blockquote>
+<blockquote><strong>log: </strong>{"isReady":true,"canGetModel":true,"canPutModel":true,"canDeleteModel":true,"canGetList":true}<br></blockquote>
 #### toString()
 &nbsp;<b><i>should return a description of the Store:</i></b>
 ```javascript
@@ -3348,8 +3348,18 @@ new SurrogateStore().onConnect("");
 ```
 <blockquote><strong>Error: argument must a callback</strong> thrown as expected
 </blockquote>
-see integration test for MongoStore    
-
+&nbsp;<b><i>return store and undefined error upon successful connection to remote store.:</i></b>
+```javascript
+new SurrogateStore().onConnect('', function (store, err) {
+  if (err) {
+    callback(err);
+  } else {
+    callback(store instanceof Store);
+  }
+});
+```
+<blockquote>returns <strong>true</strong> as expected
+</blockquote>
 #### getModel()
 &nbsp;<b><i>must pass valid model:</i></b>
 ```javascript
@@ -3379,8 +3389,20 @@ new SurrogateStore().getModel(m);
 ```
 <blockquote><strong>Error: callBack required</strong> thrown as expected
 </blockquote>
-skipping tests since store is not ready    
-
+&nbsp;<b><i>returns error when model not found:</i></b>
+```javascript
+var m = new Model();
+m.attributes[0].value = 1;
+new SurrogateStore().getModel(m, function (mod, err) {
+  if (err) {
+    callback(err);
+  } else {
+    callback(mod);
+  }
+});
+```
+<blockquote>returns <strong>Error: model not found in store</strong> as expected
+</blockquote>
 #### putModel(model)
 &nbsp;<b><i>must pass valid model:</i></b>
 ```javascript
@@ -3404,8 +3426,34 @@ new SurrogateStore().putModel(m);
 ```
 <blockquote><strong>Error: callBack required</strong> thrown as expected
 </blockquote>
-skipping tests since store is not ready    
-
+&nbsp;<b><i>returns error when model not found:</i></b>
+```javascript
+var m = new Model();
+m.attributes[0].value = 1;
+new SurrogateStore().putModel(m, function (mod, err) {
+  if (err) {
+    callback(err);
+  } else {
+    callback(mod);
+  }
+});
+```
+<blockquote>returns <strong>Error: model not found in store</strong> as expected
+</blockquote>
+&nbsp;<b><i>creates new model when ID is not set:</i></b>
+```javascript
+// This works but pollutes store with crap
+var m = new Model();
+new SurrogateStore().putModel(m, function (mod, err) {
+  if (err) {
+    callback(err);
+  } else {
+    callback(mod.get('id') ? true : false);
+  }
+});
+```
+<blockquote>returns <strong>true</strong> as expected
+</blockquote>
 #### deleteModel(model)
 &nbsp;<b><i>must pass valid model:</i></b>
 ```javascript
@@ -3429,11 +3477,37 @@ new SurrogateStore().deleteModel(m);
 ```
 <blockquote><strong>Error: callBack required</strong> thrown as expected
 </blockquote>
-skipping tests since store is not ready    
-
+&nbsp;<b><i>returns error when model not found:</i></b>
+```javascript
+var m = new Model();
+m.modelType = 'PeopleAreString!';
+m.attributes[0].value = 90210;
+new SurrogateStore().deleteModel(m, function (mod, err) {
+  if (err) {
+    callback(err);
+  } else {
+    callback(mod);
+  }
+});
+```
+<blockquote>returns <strong>Error: model not found in store</strong> as expected
+</blockquote>
 #### getList(model, filter, order)
 This method will clear and populate the list with collection from store.  The **filter** property can be used to query the store.  The **order** property can specify the sort order of the list.  _See integration test for more info._    
 
+&nbsp;<b><i>returns a List populated from store:</i></b>
+```javascript
+this.shouldThrowError(Error('argument must be a List'), function () {
+  new SurrogateStore().getList();
+});
+this.shouldThrowError(Error('filter argument must be Object'), function () {
+  new SurrogateStore().getList(new List(new Model()));
+});
+this.shouldThrowError(Error('callBack required'), function () {
+  new SurrogateStore().getList(new List(new Model()), []);
+});
+// See integration tests for examples of usage
+```
 #### Store Integration
 #### CRUD (Create Read Update Delete)
 &nbsp;<b><i>Exercise all store function for one store.:</i></b>
