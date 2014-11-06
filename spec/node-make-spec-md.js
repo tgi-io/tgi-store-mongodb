@@ -18,6 +18,7 @@ var fs = require('fs');
   mongoStore.onConnect('http://localhost', function (store, err) {
     if (err) {
       console.log('mongoStore unavailable (' + err + ')');
+      process.exit(1);
     } else {
       console.log('mongoStore connected');
       spec.runTests(function (msg) {
@@ -41,7 +42,7 @@ var fs = require('fs');
         }
       });
     }
-  }, mongo);
+  }, {vendor:mongo, keepConnection: true});
 
 }());
 

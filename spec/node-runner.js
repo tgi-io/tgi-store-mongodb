@@ -16,6 +16,7 @@ var CORE = require('../dist/tgi-store-mongodb.js');
   mongoStore.onConnect('http://localhost', function (store, err) {
     if (err) {
       console.log('mongoStore unavailable (' + err + ')');
+      process.exit(1);
     } else {
       console.log('mongoStore connected');
       spec.runTests(function (msg) {
@@ -37,5 +38,5 @@ var CORE = require('../dist/tgi-store-mongodb.js');
       });
     }
     console.log(mongoStore.name + ' ' + mongoStore.storeType);
-  }, mongo);
+  }, {vendor: mongo, keepConnection: true});
 }());
