@@ -1168,7 +1168,7 @@ var delta = new Delta(new Attribute.ModelID(new Model()));
 this.log(delta.dateCreated);
 return delta.dateCreated instanceof Date;
 ```
-<blockquote><strong>log: </strong>Thu Nov 06 2014 17:28:57 GMT-0500 (EST)<br>returns <strong>true</strong> as expected
+<blockquote><strong>log: </strong>Fri Nov 07 2014 10:20:38 GMT-0500 (EST)<br>returns <strong>true</strong> as expected
 </blockquote>
 #### modelID
 &nbsp;<b><i>set from constructor:</i></b>
@@ -1177,7 +1177,7 @@ var delta = new Delta(new Attribute.ModelID(new Model()));
 this.log(delta.dateCreated);
 return delta.modelID.toString();
 ```
-<blockquote><strong>log: </strong>Thu Nov 06 2014 17:28:57 GMT-0500 (EST)<br>returns <strong>ModelID(Model:null)</strong> as expected
+<blockquote><strong>log: </strong>Fri Nov 07 2014 10:20:38 GMT-0500 (EST)<br>returns <strong>ModelID(Model:null)</strong> as expected
 </blockquote>
 #### attributeValues
 &nbsp;<b><i>created as empty object:</i></b>
@@ -1532,31 +1532,33 @@ test.shouldBeTrue(actors.get('name') == 'Marlon Brando');
 ```javascript
 var test = this;
 
-var storeBeingTested = new MemoryStore(); // spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
-test.log(storeBeingTested);
+// var storeBeingTested = new MemoryStore(); // spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
+// spec._coreStore
+var storeBeingTested = new spec._coreStore();
+  test.log(storeBeingTested);
 // Create list of actors
 test.actorsInfo = [
   // Actor Born Male Oscards
   ['Jack Nicholson', new Date("01/01/1937"), true, 3],
-  ['Meryl Streep', Date("01/01/1949"), false, 3],
-  ['Marlon Brando', Date("01/01/1924"), true, 2],
-  ['Cate Blanchett', Date("01/01/1969"), false, 1],
-  ['Robert De Niro', Date("01/01/1943"), true, 2],
-  ['Judi Dench', Date("01/01/1934"), false, 1],
-  ['Al Pacino', Date("01/01/1940"), true, 1],
-  ['Nicole Kidman', Date("01/01/1967"), false, null],
-  ['Daniel Day-Lewis', Date("01/01/1957"), true, null],
-  ['Shirley MacLaine', Date("01/01/1934"), false, null],
-  ['Dustin Hoffman', Date("01/01/1937"), true, null],
-  ['Jodie Foster', Date("01/01/1962"), false, null],
-  ['Tom Hanks', Date("01/01/1956"), true, null],
-  ['Kate Winslet', Date("01/01/1975"), false, null],
-  ['Anthony Hopkins', Date("01/01/1937"), true, null],
-  ['Angelina Jolie', Date("01/01/1975"), false, null],
-  ['Paul Newman', Date("01/01/1925"), true, null],
-  ['Sandra Bullock', Date("01/01/1964"), false, null],
-  ['Denzel Washington', Date("01/01/1954"), true, null],
-  ['Renée Zellweger', Date("01/01/1969"), false, null]
+  ['Meryl Streep', new Date("01/01/1949"), false, 3],
+  ['Marlon Brando', new Date("01/01/1924"), true, 2],
+  ['Cate Blanchett', new Date("01/01/1969"), false, 1],
+  ['Robert De Niro', new Date("01/01/1943"), true, 2],
+  ['Judi Dench', new Date("01/01/1934"), false, 1],
+  ['Al Pacino', new Date("01/01/1940"), true, 1],
+  ['Nicole Kidman', new Date("01/01/1967"), false, null],
+  ['Daniel Day-Lewis', new Date("01/01/1957"), true, null],
+  ['Shirley MacLaine', new Date("01/01/1934"), false, null],
+  ['Dustin Hoffman', new Date("01/01/1937"), true, null],
+  ['Jodie Foster', new Date("01/01/1962"), false, null],
+  ['Tom Hanks', new Date("01/01/1956"), true, null],
+  ['Kate Winslet', new Date("01/01/1975"), false, null],
+  ['Anthony Hopkins', new Date("01/01/1937"), true, null],
+  ['Angelina Jolie', new Date("01/01/1975"), false, null],
+  ['Paul Newman', new Date("01/01/1925"), true, null],
+  ['Sandra Bullock', new Date("01/01/1964"), false, null],
+  ['Denzel Washington', new Date("01/01/1954"), true, null],
+  ['Renée Zellweger', new Date("01/01/1969"), false, null]
 ];
 // Create actor class
 test.Actor = function (args) {
@@ -1720,7 +1722,7 @@ function getAlphabetical() {
   }
 }
 ```
-<blockquote><strong>log: </strong>a MemoryStore<br>returns <strong>true</strong> as expected
+<blockquote><strong>log: </strong>a MongoStore<br>returns <strong>true</strong> as expected
 </blockquote>
 ## [&#9664;](#-list)&nbsp;[&#8984;](#table-of-contents)&nbsp;[&#9654;](#-model) &nbsp;Message
 #### Message Class
@@ -2094,7 +2096,7 @@ this.shouldBeTrue(typeof services['canPutModel'] == 'boolean');
 this.shouldBeTrue(typeof services['canDeleteModel'] == 'boolean');
 this.shouldBeTrue(typeof services['canGetList'] == 'boolean');
 ```
-<blockquote><strong>log: </strong>{"isReady":true,"canGetModel":false,"canPutModel":false,"canDeleteModel":false,"canGetList":false}<br></blockquote>
+<blockquote><strong>log: </strong>{"isReady":false,"canGetModel":false,"canPutModel":false,"canDeleteModel":false,"canGetList":false}<br></blockquote>
 #### toString()
 &nbsp;<b><i>should return a description of the Store:</i></b>
 ```javascript
@@ -2120,18 +2122,8 @@ new SurrogateStore().onConnect("");
 ```
 <blockquote><strong>Error: argument must a callback</strong> thrown as expected
 </blockquote>
-&nbsp;<b><i>return store and undefined error upon successful connection to remote store.:</i></b>
-```javascript
-new SurrogateStore().onConnect('', function (store, err) {
-  if (err) {
-    callback(err);
-  } else {
-    callback(store instanceof Store);
-  }
-});
-```
-<blockquote>returns <strong>true</strong> as expected
-</blockquote>
+see integration test for Store    
+
 #### getModel()
 &nbsp;<b><i>getModel() is not implemented for virtual class:</i></b>
 ```javascript
@@ -2156,23 +2148,18 @@ new SurrogateStore().deleteModel();
 #### getList(model, filter, order)
 This method will clear and populate the list with collection from store.  The **filter** property can be used to query the store.  The **order** property can specify the sort order of the list.  _See integration test for more info._    
 
-&nbsp;<b><i>returns a List populated from store:</i></b>
-```javascript
-return new SurrogateStore().getList();
-```
-<blockquote><strong>Error: Store does not provide getList</strong> thrown as expected
-</blockquote>
 #### Store Integration
 #### CRUD (Create Read Update Delete)
 &nbsp;<b><i>Exercise all store function for one store.:</i></b>
 ```javascript
 var self = this;
-spec.integrationStore = new MemoryStore();
+spec.integrationStore = new SurrogateStore();
 var storeBeingTested = spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
 self.log(storeBeingTested);
 // If store is not ready then get out...
 if (!spec.integrationStore.getServices().isReady) {
-  callback( Error('Store is not ready.'));
+  self.log('Store is not ready.');
+  callback(true);
   return;
 }
 // setup stooge class
@@ -2379,8 +2366,7 @@ function listReady(list, error) {
   callback(true);
 }
 ```
-<blockquote><strong>log: </strong>Moe,Larry,Shemp<br><strong>log: </strong>0<br><strong>log: </strong>0<br><strong>log: </strong>a MemoryStore MemoryStore<br>returns <strong>true</strong> as expected
-<br>Assertion(s) failed
+<blockquote><strong>log: </strong>Store is not ready.<br><strong>log: </strong>a Store Store<br>returns <strong>true</strong> as expected
 </blockquote>
 ## [&#9664;](#-store)&nbsp;[&#8984;](#table-of-contents)&nbsp;[&#9654;](#-application) &nbsp;Transport
 test disabled.    
@@ -2532,7 +2518,7 @@ this.shouldBeTrue(log.get('logType') == 'Text');
 this.shouldBeTrue(log.get('importance') == 'Info');
 this.shouldBeTrue(log.get('contents') == 'what up');
 ```
-<blockquote><strong>log: </strong>Thu Nov 06 2014 17:28:57 GMT-0500 (EST)<br></blockquote>
+<blockquote><strong>log: </strong>Fri Nov 07 2014 10:20:38 GMT-0500 (EST)<br></blockquote>
 #### LOG TYPES
 &nbsp;<b><i>must be valid:</i></b>
 ```javascript
@@ -3048,12 +3034,13 @@ this.shouldThrowError(Error('callBack required'), function () {
 &nbsp;<b><i>Exercise all store function for one store.:</i></b>
 ```javascript
 var self = this;
-spec.integrationStore = new MemoryStore();
+spec.integrationStore = new SurrogateStore();
 var storeBeingTested = spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
 self.log(storeBeingTested);
 // If store is not ready then get out...
 if (!spec.integrationStore.getServices().isReady) {
-  callback( Error('Store is not ready.'));
+  self.log('Store is not ready.');
+  callback(true);
   return;
 }
 // setup stooge class
@@ -3513,12 +3500,13 @@ this.shouldThrowError(Error('callBack required'), function () {
 &nbsp;<b><i>Exercise all store function for one store.:</i></b>
 ```javascript
 var self = this;
-spec.integrationStore = new MemoryStore();
+spec.integrationStore = new SurrogateStore();
 var storeBeingTested = spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
 self.log(storeBeingTested);
 // If store is not ready then get out...
 if (!spec.integrationStore.getServices().isReady) {
-  callback( Error('Store is not ready.'));
+  self.log('Store is not ready.');
+  callback(true);
   return;
 }
 // setup stooge class
@@ -3725,8 +3713,7 @@ function listReady(list, error) {
   callback(true);
 }
 ```
-<blockquote><strong>log: </strong>Moe,Larry,Shemp<br><strong>log: </strong>0<br><strong>log: </strong>0<br><strong>log: </strong>a MemoryStore MemoryStore<br>returns <strong>true</strong> as expected
-<br>Assertion(s) failed
+<blockquote><strong>log: </strong>Moe,Larry,Shemp<br><strong>log: </strong>2<br><strong>log: </strong>2<br><strong>log: </strong>a MongoStore MongoStore<br>returns <strong>true</strong> as expected
 </blockquote>
 ## [&#9664;](#-mongodb)&nbsp;[&#8984;](#table-of-contents) &nbsp;Summary
 This documentation generated with https://github.com/tgicloud/tgi-spec.<br>TODO put testin stats here.    

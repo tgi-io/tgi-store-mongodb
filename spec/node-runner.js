@@ -10,6 +10,7 @@ var CORE = require('../dist/tgi-store-mongodb.js');
 (function () {
   UTILITY().injectMethods(this);
   CORE().injectMethods(this);
+  spec._coreStore = MongoStore;
   testSpec(spec, CORE);
   var mongo = require('mongodb');
   var mongoStore = new MongoStore({name: 'Host Test Store'});
