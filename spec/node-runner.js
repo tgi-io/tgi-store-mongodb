@@ -34,7 +34,7 @@ var CORE = require('../dist/tgi-store-mongodb.js');
           else
             process.exit(0);
         } else if (msg.log) {
-          //console.log(msg.log);
+          console.log(msg.log);
         }
       });
     }
