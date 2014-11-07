@@ -3000,9 +3000,10 @@ spec.test('tgi-core/lib/stores/tgi-core-store-memory.spec.js', 'MemoryStore', 'v
  * Doc Intro
  */
 spec.test('lib/tgi-store-mongodb.spec.js', 'MONGODB', '', function (callback) {
-  spec.mute(false);
+  var coreTests = spec.mute(false);
   spec.heading('MongoStore', function () {
     spec.paragraph('The MongoStore handles data storage via MongoDB.');
+    spec.paragraph('Core tests run: ' + JSON.stringify(coreTests));
     spec.heading('CONSTRUCTOR', function () {
       spec.heading('Store Constructor tests are applied', function () {
         spec.runnerStoreConstructor(MongoStore,true);

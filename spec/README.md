@@ -2,6 +2,8 @@
 #### MongoStore
 The MongoStore handles data storage via MongoDB.    
 
+Core tests run: {"testsCreated":430}    
+
 #### CONSTRUCTOR
 #### Store Constructor tests are applied
 &nbsp;<b><i>objects created should be an instance of Store:</i></b>
