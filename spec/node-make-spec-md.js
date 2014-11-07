@@ -11,7 +11,6 @@ var fs = require('fs');
 (function () {
   UTILITY().injectMethods(this);
   CORE().injectMethods(this);
-  spec._coreStore = MongoStore;
   testSpec(spec, CORE);
 
   var mongo = require('mongodb');
