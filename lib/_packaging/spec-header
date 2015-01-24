@@ -1,8 +1,5 @@
 /**---------------------------------------------------------------------------------------------------------------------
- * tgi-core/lib/misc/test-header
+ * tgi-store-mongodb/lib/_packaging/spec-header
  **/
-(function () {
-"use strict";
-var root = this;
-var testSpec = function(spec,CORE) {
-spec.mute(true);
+  var MongoStore = TGI.STORE.MONGODB().MongoStore;
+  spec.mute(true);
