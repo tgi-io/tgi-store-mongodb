@@ -1,4 +1,15 @@
 /**---------------------------------------------------------------------------------------------------------------------
+ * tgi-store-mongodb/lib/tgi-store-mongodb.lib.js
+ */
+TGI.STORE = TGI.STORE || {};
+TGI.STORE.MONGODB = function () {
+  return {
+    version: '0.0.4',
+    MongoStore: MongoStore
+  };
+};
+
+/**---------------------------------------------------------------------------------------------------------------------
  * tgi-store-mongodb/lib/tgi-store-mongodb.source.js
  */
 

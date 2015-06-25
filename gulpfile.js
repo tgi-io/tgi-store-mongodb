@@ -11,12 +11,10 @@ var childProcess = require('child_process');
 
 // Source and _packaging
 var libFiles = [
-  'lib/_packaging/lib-header',
-  'node_modules/tgi-core/dist/tgi.core.chunk.js',
   'lib/tgi-store-mongodb.lib.js',
-  'lib/tgi-store-mongodb.source.js',
-  'lib/_packaging/lib-footer'
+  'lib/tgi-store-mongodb.source.js'
 ];
+var libPackaging = ['lib/_packaging/lib-header'].concat(['node_modules/tgi-core/dist/tgi.core.chunk.js']).concat(libFiles).concat(['lib/_packaging/lib-footer']);
 
 // The Spec
 var specFiles = [
@@ -29,11 +27,18 @@ var specFiles = [
 
 // Build Lib
 gulp.task('_buildLib', function () {
-  return gulp.src(libFiles)
+  return gulp.src(libPackaging)
     .pipe(concat('tgi-store-mongodb.js'))
     .pipe(gulp.dest('dist'))
     .pipe(rename('tgi-store-mongodb.min.js'))
     .pipe(uglify())
+    .pipe(gulp.dest('dist'));
+});
+
+// Build Lib Chunk
+gulp.task('_buildLibChunk', function () {
+  return gulp.src(libFiles)
+    .pipe(concat('tgi.store.json.mongodb.chunk.js'))
     .pipe(gulp.dest('dist'));
 });
 
@@ -45,12 +50,12 @@ gulp.task('_buildSpec', function () {
 });
 
 // Build Task
-gulp.task('build', ['_buildLib', '_buildSpec'], function (callback) {
+gulp.task('build', ['_buildLibChunk', '_buildLib', '_buildSpec'], function (callback) {
   callback();
 });
 
 // Lint Lib
-gulp.task('_lintLib', ['_buildLib'], function (callback) {
+gulp.task('_lintLib', ['_buildLibChunk','_buildLib'], function (callback) {
   return gulp.src('dist/tgi.core.js')
     .pipe(jshint())
     .pipe(jshint.reporter('jshint-stylish'))
