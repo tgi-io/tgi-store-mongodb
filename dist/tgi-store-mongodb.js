@@ -2618,7 +2618,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.4',
+    version: '0.0.6',
     MongoStore: MongoStore
   };
 };
@@ -2664,26 +2664,32 @@ MongoStore.prototype.onConnect = function (location, callback, options) {
   if (options) {
     mongo = options.vendor;
   } else {
+    options = {};
     if (MongoStore._connection) {
       mongo = MongoStore._connection.mongo;
     }
   }
 
-  // Open mongo database
+  /**
+   * Open mongo database
+   */
   var store = this;
+  var host = options.host || '127.0.0.1';
+  var port = options.port || 27017;
+  var databaseName = options.databaseName || 'tgiDatabase';
+  var userName = options.userName;
+  var password = options.password || '';
+  var authenticateOptions = {};
+  if (options.authdb)
+    authenticateOptions.authdb = options.authdb;
   try {
-    store.mongoServer = new mongo.Server('127.0.0.1', 27017, {auto_reconnect: true});
-    store.mongoDatabase = new mongo.Db('tequilaStore', this.mongoServer, {safe: true});
+    store.mongoServer = new mongo.Server(host, port, {auto_reconnect: true});
+    store.mongoDatabase = new mongo.Db(databaseName, this.mongoServer, {safe: true});
     store.mongoDatabase.open(function (err, db) {
-      if (err) {
-        callback(store, err);
-        try {
-          store.mongoDatabase.close();  // Error will retry till close with auto_reconnect: true
-        }
-        catch (catchError) {
-          //console.log('error closing when fail open: ' + catchError);
-        }
-      } else {
+      /**
+       * Local function after open or auto callback
+       */
+      function finishUp() {
         store.storeProperty.isReady = true;
         store.storeProperty.canGetModel = true;
         store.storeProperty.canPutModel = true;
@@ -2696,6 +2702,34 @@ MongoStore.prototype.onConnect = function (location, callback, options) {
           };
         }
         callback(store);
+      }
+
+      if (err) {
+        callback(store, err);
+        try {
+          store.mongoDatabase.close();  // Error will retry till close with auto_reconnect: true
+        }
+        catch (catchError) {
+          console.log('error closing when fail open: ' + catchError);
+        }
+      } else {
+        if (userName) {
+          console.log('authenticate(%s,%s,%s)',userName, password, JSON.stringify(authenticateOptions));
+          store.mongoDatabase.authenticate(userName, password, authenticateOptions, function (err, res) {
+            if (err) {
+              callback(store, err);
+              try {
+                store.mongoDatabase.close();  // Error will retry till close with auto_reconnect: true
+              }
+              catch (catchError) {
+                console.log('error closing when fail authenticate: ' + catchError);
+              }
+            }
+            finishUp();
+          });
+        } else {
+          finishUp();
+        }
       }
     });
   }

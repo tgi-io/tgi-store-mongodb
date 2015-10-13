@@ -7,7 +7,7 @@ var TGI = require('../dist/tgi-store-mongodb');
 var _package = require('../package');
 
 if (_package.version != TGI.STORE.MONGODB().version) {
-  console.error('Library version %s does not match package.json %s',TGI.CORE().version,_package.version);
+  console.error('Library version %s does not match package.json %s',TGI.STORE.MONGODB().version,_package.version);
   process.exit(1);
 }
 
@@ -16,6 +16,15 @@ testSpec(spec, TGI);
 var mongo = require('mongodb');
 var MongoStore = TGI.STORE.MONGODB().MongoStore;
 var mongoStore = new MongoStore({name: 'Host Test Store'});
+var options = {};
+
+options.databaseName = 'testMePlease';
+//options.userName = 'addedUser';
+//options.password = 'addedUser';
+//options.authdb = 'admin';
+options.vendor = mongo;
+options.keepConnection=true;
+
 mongoStore.onConnect('http://localhost', function (store, err) {
   if (err) {
     console.log('mongoStore unavailable (' + err + ')');
@@ -41,4 +50,4 @@ mongoStore.onConnect('http://localhost', function (store, err) {
     });
   }
   console.log(mongoStore.name + ' ' + mongoStore.storeType);
-}, {vendor: mongo, keepConnection: true});
+},options );
