@@ -4,7 +4,7 @@
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.6',
+    version: '0.0.7',
     MongoStore: MongoStore
   };
 };
@@ -241,6 +241,9 @@ MongoStore.prototype.getModel = function (model, callback) {
           }
         }
         callback(model);
+        console.log('model..');
+        console.log(JSON.stringify(model));
+
       }
     });
   });
@@ -352,6 +355,8 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
         }
         list._itemIndex = list._items.length - 1;
         callback(list);
+        console.log('list..');
+        console.log(JSON.stringify(list));
       });
     }
   });
