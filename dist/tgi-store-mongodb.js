@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.21',
+      version: '0.4.33',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -79,9 +79,11 @@ function Attribute(args, arg2) {
   }(this.type);
   this.type = splitTypes[0];
   this.hint = args.hint || {};
+  if (args.hidden !== undefined)
+    this.hidden = args.hidden;
   this.validationRule = args.validationRule || {};
   var unusedProperties = [];
-  var standardProperties = ['name', 'type', 'label', 'hint', 'value', 'validationRule'];
+  var standardProperties = ['name', 'type', 'label', 'hint', 'hidden', 'value', 'validationRule'];
   switch (this.type) {
     case 'ID':
       unusedProperties = getInvalidProperties(args, standardProperties);
@@ -941,8 +943,16 @@ List.prototype.clear = function () {
 List.prototype.get = function (attribute) {
   if (this._items.length < 1) throw new Error('list is empty');
   for (var i = 0; i < this.model.attributes.length; i++) {
-    if (this.model.attributes[i].name.toUpperCase() == attribute.toUpperCase())
-      return this._items[this._itemIndex][i];
+    if (this.model.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
+      if (this.model.attributes[i].type == 'Date' && !(this._items[this._itemIndex][i] instanceof Date)) {
+        if (this._items[this._itemIndex][i] === null || this._items[this._itemIndex][i] === undefined)
+          return null;
+        else
+          return new Date(this._items[this._itemIndex][i]); // todo problem with stores not keeping date type (mongo or host) kludge fix for now
+      } else {
+        return this._items[this._itemIndex][i];
+      }
+    }
   }
 };
 List.prototype.set = function (attribute, value) {
@@ -1093,6 +1103,13 @@ Model.prototype.getObjectStateErrors = function () {
     this.validationErrors.push('tags must be Array or null');
   }
   return this.validationErrors;
+};
+Model.prototype.attribute = function (attributeName) {
+  for (var i = 0; i < this.attributes.length; i++) {
+    if (this.attributes[i].name.toUpperCase() == attributeName.toUpperCase())
+      return this.attributes[i];
+  }
+  throw new Error('attribute not found in model: ' + attributeName);
 };
 Model.prototype.get = function (attribute) {
   for (var i = 0; i < this.attributes.length; i++) {
@@ -2819,7 +2836,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.7',
+    version: '0.0.11',
     MongoStore: MongoStore
   };
 };
@@ -2947,7 +2964,7 @@ MongoStore.prototype.putModel = function (model, callback) {
   var a;
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
-      //console.log('putModel collection error: ' + err);
+      console.log('putModel collection error: ' + err);
       callback(model, err);
       return;
     }
@@ -2977,7 +2994,7 @@ MongoStore.prototype.putModel = function (model, callback) {
 //      console.log('collection.insert (modelData): ' + JSON.stringify(modelData));
       collection.insert(modelData, {safe: true}, function (err, result) {
         if (err) {
-          //console.log('putModel insert error: ' + err);
+          console.log('putModel insert error: ' + err);
           callback(model, err);
         } else {
           // Get resulting data
@@ -2998,7 +3015,7 @@ MongoStore.prototype.putModel = function (model, callback) {
       id = MongoStore._connection.mongo.ObjectID.createFromHexString(id);
       collection.update({'_id': id}, modelData, {safe: true}, function (err, result) {
         if (err) {
-          //console.log('putModel update error: ' + err);
+          console.log('putModel update error: ' + err);
           callback(model, err);
         } else {
           // Get resulting data
@@ -3026,19 +3043,19 @@ MongoStore.prototype.getModel = function (model, callback) {
     try {
       id = MongoStore._connection.mongo.ObjectID.createFromHexString(id);
     } catch (e) {
-      //console.log('getModel createFromHexString error: ' + e);
+      console.log('getModel createFromHexString error: ' + e);
       callback(model, e);
     }
   }
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
-      //console.log('getModel collection error: ' + err);
+      console.log('getModel collection error: ' + err);
       callback(model, err);
       return;
     }
     collection.findOne({'_id': id}, function (err, item) {
       if (err) {
-        //console.log('getModel findOne ERROR: ' + err);
+        console.log('getModel findOne ERROR: ' + err);
         callback(model, err);
         return;
       }
@@ -3056,9 +3073,8 @@ MongoStore.prototype.getModel = function (model, callback) {
           }
         }
         callback(model);
-        console.log('model..');
-        console.log(JSON.stringify(model));
-
+        //console.log('model..');
+        //console.log(JSON.stringify(model));
       }
     });
   });
@@ -3082,19 +3098,19 @@ MongoStore.prototype.deleteModel = function (model, callback) {
     try {
       id = MongoStore._connection.mongo.ObjectID.createFromHexString(id);
     } catch (e) {
-      //console.log('deleteModel createFromHexString error: ' + e);
+      console.log('deleteModel createFromHexString error: ' + e);
       callback(model, e);
     }
   }
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
-      //console.log('deleteModel collection error: ' + err);
+      console.log('deleteModel collection error: ' + err);
       callback(model, err);
       return;
     }
     collection.remove({'_id': id}, function (err, item) {
       if (err) {
-        //console.log('deleteModel remove ERROR: ' + err);
+        console.log('deleteModel remove ERROR: ' + err);
         callback(model, err);
         return;
       }
@@ -3136,7 +3152,7 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
 
   store.mongoDatabase.collection(list.model.modelType, function (err, collection) {
     if (err) {
-      //console.log('getList collection error: ' + err);
+      console.log('getList collection error: ' + err);
       callback(list, err);
       return;
     }
@@ -3147,31 +3163,41 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
     }
     function findcallback(err, cursor) {
       if (err) {
-        //console.log('getList find error: ' + err);
+        console.log('getList find error: ' + err);
         callback(list, err);
         return;
       }
       cursor.toArray(function (err, documents) {
         if (err) {
-          //console.log('getList toArray error: ' + err);
+          console.log('getList toArray error: ' + err);
           callback(list, err);
           return;
         }
+        //console.log('documents: ' + JSON.stringify(documents));
         for (var i = 0; i < documents.length; i++) {
-          documents[i].id = documents[i]._id.toString();
-          delete documents[i]._id;
           var dataPart = [];
-          dataPart.push(documents[i].id);
-          for (var j in documents[i]) {
-            if (j != 'id')
-              dataPart.push(documents[i][j]);
+          var model = list.model;
+          var item = documents[i];
+          //console.log('*** START ***');
+          for (var a in model.attributes) {
+            if (model.attributes.hasOwnProperty(a)) {
+              if (model.attributes[a].name == 'id')
+                model.attributes[a].value = item._id.toString();
+              else if (item[model.attributes[a].name] && model.attributes[a].type == 'ID')
+                model.attributes[a].value = (item[model.attributes[a].name]).toString();
+              else
+                model.attributes[a].value = item[model.attributes[a].name];
+              dataPart.push(model.attributes[a].value);
+            }
           }
+          //console.log('*** STOP ***');
           list._items.push(dataPart);
+          //console.log('dataPart: ' + JSON.stringify(dataPart));
         }
         list._itemIndex = list._items.length - 1;
         callback(list);
-        console.log('list..');
-        console.log(JSON.stringify(list));
+        //console.log('list..');
+        //console.log(JSON.stringify(list));
       });
     }
   });

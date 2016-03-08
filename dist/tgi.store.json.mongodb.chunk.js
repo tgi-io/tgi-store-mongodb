@@ -4,7 +4,7 @@
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.7',
+    version: '0.0.11',
     MongoStore: MongoStore
   };
 };
@@ -132,7 +132,7 @@ MongoStore.prototype.putModel = function (model, callback) {
   var a;
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
-      //console.log('putModel collection error: ' + err);
+      console.log('putModel collection error: ' + err);
       callback(model, err);
       return;
     }
@@ -162,7 +162,7 @@ MongoStore.prototype.putModel = function (model, callback) {
 //      console.log('collection.insert (modelData): ' + JSON.stringify(modelData));
       collection.insert(modelData, {safe: true}, function (err, result) {
         if (err) {
-          //console.log('putModel insert error: ' + err);
+          console.log('putModel insert error: ' + err);
           callback(model, err);
         } else {
           // Get resulting data
@@ -183,7 +183,7 @@ MongoStore.prototype.putModel = function (model, callback) {
       id = MongoStore._connection.mongo.ObjectID.createFromHexString(id);
       collection.update({'_id': id}, modelData, {safe: true}, function (err, result) {
         if (err) {
-          //console.log('putModel update error: ' + err);
+          console.log('putModel update error: ' + err);
           callback(model, err);
         } else {
           // Get resulting data
@@ -211,19 +211,19 @@ MongoStore.prototype.getModel = function (model, callback) {
     try {
       id = MongoStore._connection.mongo.ObjectID.createFromHexString(id);
     } catch (e) {
-      //console.log('getModel createFromHexString error: ' + e);
+      console.log('getModel createFromHexString error: ' + e);
       callback(model, e);
     }
   }
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
-      //console.log('getModel collection error: ' + err);
+      console.log('getModel collection error: ' + err);
       callback(model, err);
       return;
     }
     collection.findOne({'_id': id}, function (err, item) {
       if (err) {
-        //console.log('getModel findOne ERROR: ' + err);
+        console.log('getModel findOne ERROR: ' + err);
         callback(model, err);
         return;
       }
@@ -241,9 +241,8 @@ MongoStore.prototype.getModel = function (model, callback) {
           }
         }
         callback(model);
-        console.log('model..');
-        console.log(JSON.stringify(model));
-
+        //console.log('model..');
+        //console.log(JSON.stringify(model));
       }
     });
   });
@@ -267,19 +266,19 @@ MongoStore.prototype.deleteModel = function (model, callback) {
     try {
       id = MongoStore._connection.mongo.ObjectID.createFromHexString(id);
     } catch (e) {
-      //console.log('deleteModel createFromHexString error: ' + e);
+      console.log('deleteModel createFromHexString error: ' + e);
       callback(model, e);
     }
   }
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
-      //console.log('deleteModel collection error: ' + err);
+      console.log('deleteModel collection error: ' + err);
       callback(model, err);
       return;
     }
     collection.remove({'_id': id}, function (err, item) {
       if (err) {
-        //console.log('deleteModel remove ERROR: ' + err);
+        console.log('deleteModel remove ERROR: ' + err);
         callback(model, err);
         return;
       }
@@ -321,7 +320,7 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
 
   store.mongoDatabase.collection(list.model.modelType, function (err, collection) {
     if (err) {
-      //console.log('getList collection error: ' + err);
+      console.log('getList collection error: ' + err);
       callback(list, err);
       return;
     }
@@ -332,31 +331,41 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
     }
     function findcallback(err, cursor) {
       if (err) {
-        //console.log('getList find error: ' + err);
+        console.log('getList find error: ' + err);
         callback(list, err);
         return;
       }
       cursor.toArray(function (err, documents) {
         if (err) {
-          //console.log('getList toArray error: ' + err);
+          console.log('getList toArray error: ' + err);
           callback(list, err);
           return;
         }
+        //console.log('documents: ' + JSON.stringify(documents));
         for (var i = 0; i < documents.length; i++) {
-          documents[i].id = documents[i]._id.toString();
-          delete documents[i]._id;
           var dataPart = [];
-          dataPart.push(documents[i].id);
-          for (var j in documents[i]) {
-            if (j != 'id')
-              dataPart.push(documents[i][j]);
+          var model = list.model;
+          var item = documents[i];
+          //console.log('*** START ***');
+          for (var a in model.attributes) {
+            if (model.attributes.hasOwnProperty(a)) {
+              if (model.attributes[a].name == 'id')
+                model.attributes[a].value = item._id.toString();
+              else if (item[model.attributes[a].name] && model.attributes[a].type == 'ID')
+                model.attributes[a].value = (item[model.attributes[a].name]).toString();
+              else
+                model.attributes[a].value = item[model.attributes[a].name];
+              dataPart.push(model.attributes[a].value);
+            }
           }
+          //console.log('*** STOP ***');
           list._items.push(dataPart);
+          //console.log('dataPart: ' + JSON.stringify(dataPart));
         }
         list._itemIndex = list._items.length - 1;
         callback(list);
-        console.log('list..');
-        console.log(JSON.stringify(list));
+        //console.log('list..');
+        //console.log(JSON.stringify(list));
       });
     }
   });
