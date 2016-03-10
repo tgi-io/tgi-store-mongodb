@@ -2836,7 +2836,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.11',
+    version: '0.0.16',
     MongoStore: MongoStore
   };
 };
@@ -2962,6 +2962,8 @@ MongoStore.prototype.putModel = function (model, callback) {
   if (typeof callback != "function") throw new Error('callback required');
   var store = this;
   var a;
+  //console.log('MongoStore.prototype.putModel...');
+  //console.log(JSON.stringify(model));
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
       console.log('putModel collection error: ' + err);
@@ -2991,7 +2993,7 @@ MongoStore.prototype.putModel = function (model, callback) {
       }
     }
     if (newModel) {
-//      console.log('collection.insert (modelData): ' + JSON.stringify(modelData));
+      //console.log('collection.insert (modelData): ' + JSON.stringify(modelData));
       collection.insert(modelData, {safe: true}, function (err, result) {
         if (err) {
           console.log('putModel insert error: ' + err);
@@ -3073,7 +3075,7 @@ MongoStore.prototype.getModel = function (model, callback) {
           }
         }
         callback(model);
-        //console.log('model..');
+        //console.log('MongoStore.prototype.getModel model...');
         //console.log(JSON.stringify(model));
       }
     });
