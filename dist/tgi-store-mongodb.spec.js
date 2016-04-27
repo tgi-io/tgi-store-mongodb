@@ -25,6 +25,7 @@ var testSpec = function(spec,TGI) {
   var Text = tgiCore.Text;
   var Transport = tgiCore.Transport;
   var User = tgiCore.User;
+  var View = tgiCore.View;
   var Workspace = tgiCore.Workspace;
   var inheritPrototype = tgiCore.inheritPrototype;
   var getInvalidProperties = tgiCore.getInvalidProperties;
@@ -123,7 +124,7 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
       spec.example('should be required', Error('error creating Attribute: name required'), function () {
         new Attribute();
       });
-      spec.example('should allow shorthand string constructor for name property', 'Attribute: favoriteActorName', function () {
+      spec.example('should allow shorthand string constructor for name property', 'Attribute: favoriteActorName = null', function () {
         return new Attribute('favoriteActorName');
       });
     });
@@ -317,6 +318,20 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
           return theGood + ' correct assignments ' + theBad + ' errors thrown';
         });
     });
+    spec.heading('model', function () {
+      spec.example('a reference to model', undefined, function () {
+        return new Attribute({name: 'derp'}).model; // undefined when not part of model
+      });
+      spec.example('defined by model', 'I am a Model', function () {
+        var attrib = new Attribute("Sue");
+        new Model({attributes: [attrib]});
+        return 'I am ' + attrib.model;
+      });
+      spec.example('user example', 'You are a User', function () {
+        return 'You are ' + new User().attribute('name').model;
+      });
+
+    });
   });
   spec.heading('TYPES', function () {
     spec.heading('ID', function () {
@@ -455,7 +470,7 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
       });
     });
     spec.heading('toString()', function () {
-      spec.example('should return a description of the attribute', 'Attribute: name', function () {
+      spec.example('should return a description of the attribute', 'Attribute: name = null', function () {
         return new Attribute({name: 'name'}).toString();
       });
     });
@@ -840,6 +855,9 @@ spec.test('tgi-core/lib/tgi-core-command.spec.js', 'Command', 'encapsulates task
           new Command({name: 'options', type: 'Function'});
         });
       });
+      spec.example('shorthand version', 'Function', function () {
+        return new Command(function () {}).type;
+      });
     });
     spec.heading('Procedure', function () {
       spec.example('for Procedure type contents is a Procedure object', undefined, function () {
@@ -847,6 +865,10 @@ spec.test('tgi-core/lib/tgi-core-command.spec.js', 'Command', 'encapsulates task
           new Command({name: 'options', type: 'Procedure'});
         });
       });
+      spec.example('shorthand version', 'Procedure', function () {
+        return new Command(new Procedure()).type;
+      });
+
     });
   });
   spec.heading('METHODS', function () {
@@ -1938,12 +1960,10 @@ spec.testModel = function (SurrogateModel, root) {
         this.shouldBeTrue(m1 === m3); // assigning one model to variable references same instance
         this.shouldBeTrue(m3.get('name') === 'Bar'); // m3 changed when m1 changed
         this.shouldBeTrue(m1 !== m2); // 2 models are not the same instance
-        this.shouldBeTrue(JSON.stringify(m1) === JSON.stringify(m2)); // but they are identical
         // clone m1 into m4 and demonstrate that contents equal but not same ref to object
         var m4 = new Foo();
         m4.copy(m1);
         this.shouldBeTrue(m1 !== m4); // 2 models are not the same instance
-        this.shouldBeTrue(JSON.stringify(m1) === JSON.stringify(m4)); // but they are identical
       });
     });
     spec.heading('getObjectStateErrors()', function () {
@@ -2125,7 +2145,7 @@ spec.testModel = function (SurrogateModel, root) {
 spec.test('tgi-core/lib/tgi-core-procedure.spec.js', 'Procedure', 'manages set of Commands synchronous or asynchronous', function (callback) {
   spec.heading('Procedure Class', function () {
     spec.paragraph('The `Procedure` class manages a set of `Command` objects.  It provides a pattern for handling ' +
-    'asynchronous and synchronous command execution.');
+      'asynchronous and synchronous command execution.');
     spec.paragraph('`Command` objects create and manage the `Procedure` object.');
     spec.heading('CONSTRUCTOR', function () {
       spec.example('objects created should be an instance of Procedure', true, function () {
@@ -2141,7 +2161,7 @@ spec.test('tgi-core/lib/tgi-core-procedure.spec.js', 'Procedure', 'manages set o
     spec.heading('PROPERTIES', function () {
       spec.heading('tasks', function () {
         spec.paragraph('Tasks is an array of objects that represent each step of the procedure.  See TASKS section ' +
-        'below for each property of this unnamed object (task array element).');
+          'below for each property of this unnamed object (task array element).');
         spec.example('tasks can be falsy if no tasks defined otherwise it has to be an array',
           Error('error creating Procedure: tasks is not an array'), function () {
             new Procedure({tasks: true});
@@ -2175,6 +2195,10 @@ spec.test('tgi-core/lib/tgi-core-procedure.spec.js', 'Procedure', 'manages set o
             ]
           });
         });
+        spec.example('shorthand version', undefined, function () {
+          new Procedure([function () {
+          }]);
+        });
       });
       spec.heading('command', function () {
         spec.paragraph('Command to execute for this task');
@@ -2188,8 +2212,8 @@ spec.test('tgi-core/lib/tgi-core-procedure.spec.js', 'Procedure', 'manages set o
       });
       spec.heading('requires', function () {
         spec.paragraph('Establish other tasks that must be complete before this task is executed.  ' +
-        'Pass as array of or single element. Can be string(for label label) or number(for array index).  ' +
-        'Use -1 for previous task, null for no dependencies');
+          'Pass as array of or single element. Can be string(for label label) or number(for array index).  ' +
+          'Use -1 for previous task, null for no dependencies');
         spec.example('test it', undefined, function () {
           this.shouldThrowError(Error('invalid type for requires in task[0]'), function () {
             new Procedure({
@@ -2431,7 +2455,6 @@ spec.test('tgi-core/lib/tgi-core-store.spec.js', 'Store', 'holds Model objects f
   });
   spec.runnerStoreMethods(Store);
 });
-
 spec.runnerStoreConstructor = function (SurrogateStore) {
   spec.example('objects created should be an instance of Store', true, function () {
     return new SurrogateStore() instanceof Store;
@@ -2624,7 +2647,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
         });
       }
     });
-    spec.heading('getList(model, filter, order)', function () {
+    spec.heading('getList(list, filter, order)', function () {
       spec.paragraph('This method will clear and populate the list with collection from store.  ' +
         'The **filter** property can be used to query the store.  ' +
         'The **order** property can specify the sort order of the list.  ' +
@@ -2686,235 +2709,285 @@ spec.runnerStoreMethods = function (SurrogateStore) {
         callback(true);
       });
     });
-    spec.heading('CRUD (Create Read Update Delete)', function () {
-      spec.example('Exercise all store function for one store.', spec.asyncResults(true), function (callback) {
-        var self = this;
-        spec.integrationStore = new SurrogateStore();
-        var storeBeingTested = spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
-        self.log(storeBeingTested);
+    spec.example('CRUD (Create Read Update Delete) Exercise all store function for one store.', spec.asyncResults(true), function (callback) {
+      var self = this;
+      spec.integrationStore = new SurrogateStore();
+      var storeBeingTested = spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
+      self.log(storeBeingTested);
 
-        // If store is not ready then get out...
-        if (!spec.integrationStore.getServices().isReady) {
-          self.log('Store is not ready.');
-          callback(true);
-          return;
-        }
+      // If store is not ready then get out...
+      if (!spec.integrationStore.getServices().isReady) {
+        self.log('Store is not ready.');
+        callback(true);
+        return;
+      }
 
-        // setup stooge class
-        self.Stooge = function (args) {
-          Model.call(this, args);
-          this.modelType = "_tempTest_Stooge";
-          this.attributes.push(new Attribute('name'));
-        };
-        self.Stooge.prototype = inheritPrototype(Model.prototype);
+      // setup stooge class
+      self.Stooge = function (args) {
+        Model.call(this, args);
+        this.modelType = "_tempTest_Stooge";
+        this.attributes.push(new Attribute('name'));
+      };
+      self.Stooge.prototype = inheritPrototype(Model.prototype);
 
-        // create initial stooges
-        self.moe = new self.Stooge();
-        self.moe.set('name', 'Moe');
-        self.larry = new self.Stooge();
-        self.larry.set('name', 'Larry');
-        self.shemp = new self.Stooge();
-        self.shemp.set('name', 'Shemp');
+      // setup StoogeLine class to track their dialogue in script
+      self.StoogeLine = function (args) {
+        Model.call(this, args);
+        this.modelType = "_tempTest_StoogeLines";
+        this.attributes.push(new Attribute({name: 'Scene', type: 'Number'}));
+        this.attributes.push(new Attribute({name: 'StoogeID', type: 'ID'}));
+        this.attributes.push(new Attribute({name: 'Line', type: 'String'}));
+      };
+      self.StoogeLine.prototype = inheritPrototype(Model.prototype);
 
-        // IDs after stored will be here
-        self.stoogeIDsStored = [];
-        self.stoogesRetrieved = [];
-        self.oldStoogesFound = 0;
-        self.oldStoogesKilled = 0;
+      // create initial stooges
+      self.moe = new self.Stooge();
+      self.moe.set('name', 'Moe');
+      self.larry = new self.Stooge();
+      self.larry.set('name', 'Larry');
+      self.shemp = new self.Stooge();
+      self.shemp.set('name', 'Shemp');
 
-        // Make sure store starts in known state.  Stores such as mongoStore will retain test values.
-        // So... use getList to get all stooges then delete them from the Store
-        var useListToCleanStart = spec.integrationStore.getServices().canGetList;
-        if (useListToCleanStart) {
-          var list = new List(new self.Stooge());
-          try {
-            self.killhim = new self.Stooge();
-            spec.integrationStore.getList(list, [], function (list, error) {
-              if (typeof error != 'undefined') {
-                callback(error);
-                return;
-              }
-              if (list._items.length < 1)
-                storeStooges();
-              else
-                self.oldStoogesFound = list._items.length;
-              for (var i = 0; i < list._items.length; i++) {
-                self.killhim.set('id', list._items[i][0]);
-                /* jshint ignore:start */
-                spec.integrationStore.deleteModel(self.killhim, function (model, error) {
-                  if (++self.oldStoogesKilled >= self.oldStoogesFound) {
-                    storeStooges();
-                  }
-                })
-                /* jshint ignore:end */
-              }
-            });
-          }
-          catch (err) {
-            callback(err);
-          }
-        } else {
-          storeStooges();
-        }
+      // IDs after stored will be here
+      self.stoogeIDsStored = [];
+      self.stoogesRetrieved = [];
+      self.oldStoogesFound = 0;
+      self.oldStoogesKilled = 0;
 
-        // callback to store new stooges
-        function storeStooges() {
-          self.log(self.oldStoogesFound);
-          self.log(self.oldStoogesKilled);
-          spec.integrationStore.putModel(self.moe, stoogeStored);
-          spec.integrationStore.putModel(self.larry, stoogeStored);
-          spec.integrationStore.putModel(self.shemp, stoogeStored);
-        }
-
-        // callback after storing stooges
-        function stoogeStored(model, error) {
-          if (typeof error != 'undefined') {
-            callback(error);
-            return;
-          }
-          try {
-            self.stoogeIDsStored.push(model.get('id'));
-            if (self.stoogeIDsStored.length == 3) {
-              self.shouldBeTrue(true, 'here');
-              // Now that first 3 stooges are stored lets retrieve and verify
-              var actors = [];
-              for (var i = 0; i < 3; i++) {
-                actors.push(new self.Stooge());
-                actors[i].set('id', self.stoogeIDsStored[i]);
-                spec.integrationStore.getModel(actors[i], stoogeRetrieved);
-              }
-            }
-          }
-          catch (err) {
-            callback(err);
-          }
-        }
-
-        // callback after retrieving stored stooges
-        function stoogeRetrieved(model, error) {
-          if (typeof error != 'undefined') {
-            callback(error);
-            return;
-          }
-          self.stoogesRetrieved.push(model);
-          if (self.stoogesRetrieved.length == 3) {
-            self.shouldBeTrue(true, 'here');
-            // Now we have stored and retrieved (via IDs into new objects).  So verify the stooges made it
-            self.shouldBeTrue(self.stoogesRetrieved[0] !== self.moe && // Make sure not a reference but a copy
-              self.stoogesRetrieved[0] !== self.larry && self.stoogesRetrieved[0] !== self.shemp, 'copy');
-            var s = []; // get list of names to see if all stooges made it
-            for (var i = 0; i < 3; i++) s.push(self.stoogesRetrieved[i].get('name'));
-            self.log(s);
-            self.shouldBeTrue(contains(s, 'Moe') && contains(s, 'Larry') && contains(s, 'Shemp'));
-            // Replace Shemp with Curly
-            var didPutCurly = false;
-            for (i = 0; i < 3; i++) {
-              if (self.stoogesRetrieved[i].get('name') == 'Shemp') {
-                didPutCurly = true;
-                self.stoogesRetrieved[i].set('name', 'Curly');
-                try {
-                  spec.integrationStore.putModel(self.stoogesRetrieved[i], stoogeChanged);
-                }
-                catch (err) {
-                  callback(err);
-                }
-              }
-            }
-            if (!didPutCurly) {
-              callback(Error("Can't find Shemp!"));
-            }
-          }
-        }
-
-        // callback after storing changed stooge
-        function stoogeChanged(model, error) {
-          if (typeof error != 'undefined') {
-            callback(error);
-            return;
-          }
-          self.shouldBeTrue(model.get('name') == 'Curly', 'Curly');
-          var curly = new self.Stooge();
-          curly.set('id', model.get('id'));
-          try {
-            spec.integrationStore.getModel(curly, storeChangedShempToCurly);
-          }
-          catch (err) {
-            callback(err);
-          }
-        }
-
-        // callback after retrieving changed stooge
-        function storeChangedShempToCurly(model, error) {
-          if (typeof error != 'undefined') {
-            callback(error);
-            return;
-          }
-          self.shouldBeTrue(model.get('name') == 'Curly', 'Curly');
-          // Now test delete
-          self.deletedModelId = model.get('id'); // Remember this
-          spec.integrationStore.deleteModel(model, stoogeDeleted);
-        }
-
-        // callback when Curly is deleted
-        function stoogeDeleted(model, error) {
-          if (typeof error != 'undefined') {
-            callback(error);
-            return;
-          }
-          // model parameter is what was deleted
-          self.shouldBeTrue(undefined === model.get('id')); // ID removed
-          self.shouldBeTrue(model.get('name') == 'Curly'); // the rest remains
-          // Is it really dead?
-          var curly = new self.Stooge();
-          curly.set('id', self.deletedModelId);
-          spec.integrationStore.getModel(curly, hesDeadJim);
-        }
-
-        // callback after lookup of dead stooge
-        function hesDeadJim(model, error) {
-          if (typeof error != 'undefined') {
-            if ((error != 'Error: id not found in store') && (error != 'Error: model not found in store')) {
+      // Make sure store starts in known state.  Stores such as mongoStore will retain test values.
+      // So... use getList to get all stooges then delete them from the Store
+      var useListToCleanStart = spec.integrationStore.getServices().canGetList;
+      if (useListToCleanStart) {
+        var list = new List(new self.Stooge());
+        try {
+          self.killhim = new self.Stooge();
+          spec.integrationStore.getList(list, [], function (list, error) {
+            if (typeof error != 'undefined') {
               callback(error);
               return;
             }
-          } else {
-            callback(Error('no error deleting stooge when expected'));
-            return;
-          }
-          // Skip List test if subclass can't do
-          if (!spec.integrationStore.getServices().canGetList) {
-            callback(true);
-          } else {
-            // Now create a list from the stooge store
-            var list = new List(new self.Stooge());
-            try {
-              spec.integrationStore.getList(list, {}, {name: 1}, listReady);
+            if (list._items.length < 1)
+              storeStooges();
+            else
+              self.oldStoogesFound = list._items.length;
+            for (var i = 0; i < list._items.length; i++) {
+              self.killhim.set('id', list._items[i][0]);
+              /* jshint ignore:start */
+              spec.integrationStore.deleteModel(self.killhim, function (model, error) {
+                if (++self.oldStoogesKilled >= self.oldStoogesFound) {
+                  storeStooges();
+                }
+              })
+              /* jshint ignore:end */
             }
-            catch (err) {
-              callback(err);
+          });
+        }
+        catch (err) {
+          callback(err);
+        }
+      } else {
+        storeStooges();
+      }
+
+      // callback to store new stooges
+      function storeStooges() {
+        self.log(self.oldStoogesFound);
+        self.log(self.oldStoogesKilled);
+        spec.integrationStore.putModel(self.moe, stoogeStored);
+        spec.integrationStore.putModel(self.larry, stoogeStored);
+        spec.integrationStore.putModel(self.shemp, stoogeStored);
+      }
+
+      // callback after storing stooges
+      function stoogeStored(model, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        try {
+          self.stoogeIDsStored.push(model.get('id'));
+          //console.log('Now we have moe ' + self.moe.get('id'));
+          //console.log('model says ' + model.get('id'));
+          if (self.stoogeIDsStored.length == 3) {
+            // Now that first 3 stooges are stored lets retrieve and verify
+            var actors = [];
+            for (var i = 0; i < 3; i++) {
+              actors.push(new self.Stooge());
+              actors[i].set('id', self.stoogeIDsStored[i]);
+              spec.integrationStore.getModel(actors[i], stoogeRetrieved);
             }
           }
         }
+        catch (err) {
+          callback(err);
+        }
+      }
 
-        // callback after list created from store
-        function listReady(list, error) {
-//          list.sort({name:1});
-          if (typeof error != 'undefined') {
+      // callback after retrieving stored stooges
+      function stoogeRetrieved(model, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        self.stoogesRetrieved.push(model);
+        if (self.stoogesRetrieved.length == 3) {
+          // Now we have stored and retrieved (via IDs into new objects).  So verify the stooges made it
+          self.shouldBeTrue(self.stoogesRetrieved[0] !== self.moe && // Make sure not a reference but a copy
+            self.stoogesRetrieved[0] !== self.larry && self.stoogesRetrieved[0] !== self.shemp, 'copy');
+          var s = []; // get list of names to see if all stooges made it
+          for (var i = 0; i < 3; i++) s.push(self.stoogesRetrieved[i].get('name'));
+          self.log(s);
+          self.shouldBeTrue(contains(s, 'Moe') && contains(s, 'Larry') && contains(s, 'Shemp'));
+          // Replace Shemp with Curly
+          var didPutCurly = false;
+          for (i = 0; i < 3; i++) {
+            if (self.stoogesRetrieved[i].get('name') == 'Shemp') {
+              didPutCurly = true;
+              self.stoogesRetrieved[i].set('name', 'Curly');
+              try {
+                spec.integrationStore.putModel(self.stoogesRetrieved[i], stoogeChanged);
+              }
+              catch (err) {
+                callback(err);
+              }
+            }
+          }
+          if (!didPutCurly) {
+            callback(Error("Can't find Shemp!"));
+          }
+        }
+      }
+
+      // callback after storing changed stooge
+      function stoogeChanged(model, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        self.shouldBeTrue(model.get('name') == 'Curly', 'Curly');
+        var curly = new self.Stooge();
+        curly.set('id', model.get('id'));
+        try {
+          spec.integrationStore.getModel(curly, storeChangedShempToCurly);
+        }
+        catch (err) {
+          callback(err);
+        }
+      }
+
+      // callback after retrieving changed stooge
+      function storeChangedShempToCurly(model, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        self.shouldBeTrue(model.get('name') == 'Curly', 'Curly');
+        // Now test delete
+        self.deletedModelId = model.get('id'); // Remember this
+        spec.integrationStore.deleteModel(model, stoogeDeleted);
+      }
+
+      // callback when Curly is deleted
+      function stoogeDeleted(model, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        // model parameter is what was deleted
+        self.shouldBeTrue(undefined === model.get('id')); // ID removed
+        self.shouldBeTrue(model.get('name') == 'Curly'); // the rest remains
+        // Is it really dead?
+        var curly = new self.Stooge();
+        curly.set('id', self.deletedModelId);
+        spec.integrationStore.getModel(curly, hesDeadJim);
+      }
+
+      // callback after lookup of dead stooge
+      function hesDeadJim(model, error) {
+        if (typeof error != 'undefined') {
+          if ((error != 'Error: id not found in store') && (error != 'Error: model not found in store')) {
             callback(error);
             return;
           }
-          self.shouldBeTrue(list instanceof List, 'is list');
-          self.shouldBeTrue(list.length() == 2, 'is 2');
-          list.moveFirst();
-          self.shouldBeTrue(list.get('name') == 'Larry', 'larry');
-          list.moveNext();
-          self.shouldBeTrue(list.get('name') == 'Moe', 'moe');
-          callback(true);
+        } else {
+          callback(Error('no error deleting stooge when expected'));
+          return;
         }
-      });
+        // Skip List test if subclass can't do
+        if (!spec.integrationStore.getServices().canGetList) {
+          callback(true);
+        } else {
+          // Now create a list from the stooge store
+          var list = new List(new self.Stooge());
+          try {
+            spec.integrationStore.getList(list, {}, {name: 1}, listReady);
+          }
+          catch (err) {
+            callback(err);
+          }
+        }
+      }
+
+      // callback after list created from store
+      function listReady(list, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        self.shouldBeTrue(list instanceof List, 'is list');
+        self.shouldBeTrue(list.length() == 2, 'is 2');
+        list.moveFirst();
+        self.shouldBeTrue(list.get('name') == 'Larry', 'larry');
+        list.moveNext();
+        self.shouldBeTrue(list.get('name') == 'Moe', 'moe');
+        createView();
+      }
+
+      /**
+       * Prepare the rest of the store for testing getList with View type list
+       */
+      function createView() {
+        var moesLine = new self.StoogeLine();
+        moesLine.set('Scene',1);
+        moesLine.set('StoogeID',self.moe.get('id'));
+        moesLine.set('Line','To be or not to be?');
+
+        var larrysLine = new self.StoogeLine();
+        larrysLine.set('Scene',1);
+        larrysLine.set('StoogeID',self.larry.get('id'));
+        larrysLine.set('Line','That is the question!');
+
+        spec.integrationStore.putModel(moesLine, function (model, error) {
+          if (typeof error != 'undefined') {
+            callback(error);
+          } else {
+            spec.integrationStore.putModel(moesLine, function (model, error) {
+              if (typeof error != 'undefined') {
+                callback(error);
+              } else {
+                callback(true);
+              }
+            });
+          }
+        });
+        //console.log('dis store be ' + spec.integrationStore);
+        //console.log('moe ID ' + self.moe.get('id'));
+        //console.log('larry ID ' + self.larry.get('id'));
+        //callback(true);
+      }
+
+
+      //// setup StoogeLine class to track their dialogue in script
+      //self.StoogeLine = function (args) {
+      //  Model.call(this, args);
+      //  this.modelType = "_tempTest_StoogeLines";
+      //  this.attributes.push(new Attribute({name: 'Scene', type: 'Number'}));
+      //  this.attributes.push(new Attribute({name: 'StoogeID', type: 'ID'}));
+      //  this.attributes.push(new Attribute({name: 'Line', type: 'String'}));
+      //};
+
     });
   });
-
 };
 /**---------------------------------------------------------------------------------------------------------------------
  * tgi-core/lib/core/tgi-core-text.spec.js
@@ -3053,6 +3126,62 @@ spec.test('tgi-core/lib/tgi-core-transport.spec.js', 'Transport', 'messages betw
       });
     });
     //spec.examplesDisabled = false;
+  });
+});
+
+/**---------------------------------------------------------------------------------------------------------------------
+ * tgi-core/lib/core/tgi-core-view.spec.js
+ */
+spec.test('tgi-core/lib/core/tgi-core-view.spec.js', 'View', 'related models', function (callback) {
+  spec.heading('View', function () {
+    spec.paragraph('Does stuff');
+    spec.heading('CONSTRUCTOR', function () {
+      spec.example('objects created should be an instance of View', true, function () {
+        return new View(new Model(), {}, []) instanceof View;
+      });
+      spec.example('should make sure new operator used', Error('new operator required'), function () {
+        View(); // jshint ignore:line
+      });
+      spec.example('first parameter is primary model', Error('argument must be a Model'), function () {
+        new View();
+      });
+      spec.example('second parameter is object with related models', Error('object expected'), function () {
+        new View(new Model());
+      });
+      spec.example('third parameter is array of attributes making up view', Error('array of attributes expected'), function () {
+        new View(new Model(), {});
+      });
+      spec.example('related models are named objects with id & model', undefined, function () {
+        this.shouldThrowError('Error: relatedModel key values expect object', function () {
+          new View(new Model(), {eat: 'me'}, []);
+        });
+        this.shouldThrowError('Error: relatedModel key values expect object with id key', function () {
+          new View(new Model(), {eat: {}}, []);
+        });
+        this.shouldThrowError('Error: relatedModel key values expect object with model key', function () {
+          new View(new Model(), {eat: {id: 1}}, []);
+        });
+        this.shouldThrowError('Error: relatedModel id must be a Attribute', function () {
+          new View(new Model(), {eat: {id: 1, model: new Model()}}, []);
+        });
+        this.shouldThrowError('Error: relatedModel model must be a Model', function () {
+          new View(new Model(), {eat: {id: new Attribute({name: 'eatID'}), model: 2}}, []);
+        });
+      });
+      spec.example('attributes must be valid attribute', Error('attribute array must contain Attributes'), function () {
+        new View(new Model(), {}, ['this is so wrong']);
+      });
+      spec.example('attributes must be valid attribute', Error('attribute array must contain Attributes with model references'), function () {
+        new View(new Model(), {}, [new Attribute({name: 'x'})]);
+      });
+    });
+    spec.heading('METHODS', function () {
+      spec.heading('toString()', function () {
+        spec.example('should return a description of the view', 'a Model View', function () {
+          return new View(new Model(), {}, []).toString();
+        });
+      });
+    });
   });
 });
 

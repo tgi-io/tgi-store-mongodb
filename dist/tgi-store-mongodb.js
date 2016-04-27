@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.33',
+      version: '0.4.41',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -30,6 +30,7 @@ var TGI = {
       Text: Text,
       Transport: Transport,
       User: User,
+      View: View,
       Workspace: Workspace,
       inheritPrototype: inheritPrototype,
       getInvalidProperties: getInvalidProperties,
@@ -177,7 +178,7 @@ Attribute.ModelID.prototype.toString = function () {
  * Methods
  */
 Attribute.prototype.toString = function () {
-  return this.name === null ? 'new Attribute' : 'Attribute: ' + this.name;
+  return this.name === null ? 'new Attribute' : 'Attribute: ' + this.name + ' = ' + this.value;
 };
 Attribute.prototype.onEvent = function (events, callback) {
   if (!(events instanceof Array)) {
@@ -417,8 +418,10 @@ Attribute.getEvents = function () {
 function Command(args) {
   if (false === (this instanceof Command)) throw new Error('new operator required');
   if (typeof args == 'function') { // shorthand for function command
-    var theFunc = args;
-    args = {type: 'Function', contents: theFunc};
+    args = {type: 'Function', contents: args};
+  }
+  if (args instanceof Procedure) { // shorthand for Procedure command
+    args = {type: 'Procedure', contents: args};
   }
   args = args || {};
   var i;
@@ -927,8 +930,9 @@ Interface.firstMatch = function (s, a) { // find first partial match with s in a
 // Constructor
 var List = function (model) {
   if (false === (this instanceof List)) throw new Error('new operator required');
-  if (false === (model instanceof Model)) throw new Error('argument required: model');
-  this.model = model; // todo make unit test for this
+  if (!(model instanceof Model || model instanceof View)) throw new Error('argument required: model');
+  this.model = model;
+  this.attributes = model.attributes;
   this._items = [];
   this._itemIndex = -1;
 };
@@ -942,9 +946,9 @@ List.prototype.clear = function () {
 };
 List.prototype.get = function (attribute) {
   if (this._items.length < 1) throw new Error('list is empty');
-  for (var i = 0; i < this.model.attributes.length; i++) {
-    if (this.model.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
-      if (this.model.attributes[i].type == 'Date' && !(this._items[this._itemIndex][i] instanceof Date)) {
+  for (var i = 0; i < this.attributes.length; i++) {
+    if (this.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
+      if (this.attributes[i].type == 'Date' && !(this._items[this._itemIndex][i] instanceof Date)) {
         if (this._items[this._itemIndex][i] === null || this._items[this._itemIndex][i] === undefined)
           return null;
         else
@@ -957,8 +961,8 @@ List.prototype.get = function (attribute) {
 };
 List.prototype.set = function (attribute, value) {
   if (this._items.length < 1) throw new Error('list is empty');
-  for (var i = 0; i < this.model.attributes.length; i++) {
-    if (this.model.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
+  for (var i = 0; i < this.attributes.length; i++) {
+    if (this.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
       this._items[this._itemIndex][i] = value;
       return;
     }
@@ -973,7 +977,7 @@ List.prototype.addItem = function (item) {
       values.push(item.attributes[i].value);
     }
   } else {
-    for (i in this.model.attributes) {
+    for (i in this.attributes) {
       values.push(undefined);
     }
   }
@@ -1026,7 +1030,7 @@ List.prototype.sort = function (key) {
   }
   if (!keyvalue) throw new Error('sort order required');
   var ascendingSort = (key[keyvalue] == 1);
-  while (i < this.model.attributes.length && this.model.attributes[i].name != keyvalue) i++;
+  while (i < this.attributes.length && this.attributes[i].name != keyvalue) i++;
   this._items.sort(function (a, b) {
     if (ascendingSort) {
       if (a[i] < b[i])
@@ -1041,6 +1045,51 @@ List.prototype.sort = function (key) {
     }
     return 0;
   });
+};
+
+/**---------------------------------------------------------------------------------------------------------------------
+ * tgi-core/lib/core/tgi-core-message.source.js
+ */
+/**
+ * Constructor
+ */
+function Message(type, contents) {
+  if (false === (this instanceof Message)) throw new Error('new operator required');
+  if ('undefined' == typeof type) throw new Error('message type required');
+  if (!contains(Message.getTypes(), type)) throw new Error('Invalid message type: ' + type);
+  this.type = type;
+  this.contents = contents;
+}
+/**
+ * Methods
+ */
+Message.prototype.toString = function () {
+  switch (this.type) {
+    case 'Null':
+      return this.type + ' Message';
+    default:
+      return this.type + ' Message: ' + this.contents;
+  }
+};
+/**
+ * Simple functions
+ */
+Message.getTypes = function () {
+  return [
+    'Null',
+    'Connected',
+    'Error',
+    'Sent',
+    'Ping',
+    'PutModel',
+    'PutModelAck',
+    'GetModel',
+    'GetModelAck',
+    'DeleteModel',
+    'DeleteModelAck',
+    'GetList',
+    'GetListAck'
+  ].slice(0); // copy array
 };
 
 /**---------------------------------------------------------------------------------------------------------------------
@@ -1069,6 +1118,9 @@ var Model = function (args) {
   // Validations done
   this._eventListeners = [];
   this._errorConditions = {};
+  for (i = 0; i < this.attributes.length; i++) {
+    this.attributes[i].model = this;
+  }
 };
 Model._ModelConstructor = {};
 /**
@@ -1237,51 +1289,6 @@ Model.prototype.clearError = function (condition) {
   delete this._errorConditions[condition];
 };
 /**---------------------------------------------------------------------------------------------------------------------
- * tgi-core/lib/core/tgi-core-message.source.js
- */
-/**
- * Constructor
- */
-function Message(type, contents) {
-  if (false === (this instanceof Message)) throw new Error('new operator required');
-  if ('undefined' == typeof type) throw new Error('message type required');
-  if (!contains(Message.getTypes(), type)) throw new Error('Invalid message type: ' + type);
-  this.type = type;
-  this.contents = contents;
-}
-/**
- * Methods
- */
-Message.prototype.toString = function () {
-  switch (this.type) {
-    case 'Null':
-      return this.type + ' Message';
-    default:
-      return this.type + ' Message: ' + this.contents;
-  }
-};
-/**
- * Simple functions
- */
-Message.getTypes = function () {
-  return [
-    'Null',
-    'Connected',
-    'Error',
-    'Sent',
-    'Ping',
-    'PutModel',
-    'PutModelAck',
-    'GetModel',
-    'GetModelAck',
-    'DeleteModel',
-    'DeleteModelAck',
-    'GetList',
-    'GetListAck'
-  ].slice(0); // copy array
-};
-
-/**---------------------------------------------------------------------------------------------------------------------
  * tgi-core/lib/core/tgi-core-procedure.source.js
  */
 /**
@@ -1289,6 +1296,9 @@ Message.getTypes = function () {
  */
 var Procedure = function (args) {
   if (false === (this instanceof Procedure)) throw new Error('new operator required');
+  if (args instanceof Array) { // shorthand for Procedure command
+    args = {tasks: args};
+  }
   args = args || {};
   var i;
   var unusedProperties = getInvalidProperties(args, ['tasks', 'tasksNeeded', 'tasksCompleted']);
@@ -1613,6 +1623,51 @@ Transport.prototype.close = function () {
   if (!this.connected)
     throw new Error('not connected');
   this.socket.disconnect();
+};
+
+/**---------------------------------------------------------------------------------------------------------------------
+ * tgi-core/lib/core/tgi-core-view.source.js
+ */
+/**
+ * Constructor
+ */
+function View(primaryModel, relatedModels, attributes) {
+  if (false === (this instanceof View)) throw new Error('new operator required');
+  if (!(primaryModel instanceof Model)) throw new Error('argument must be a Model');
+  if (typeof relatedModels != 'object') throw new Error('object expected');
+  if (!(attributes instanceof Array)) throw new Error('array of attributes expected');
+  this.primaryModel = primaryModel;
+  this.relatedModels = relatedModels;
+  this.attributes = attributes;
+  /**
+   * Make sure relatedModels valid
+   */
+  for (var relatedModel in relatedModels) {
+    if (relatedModels.hasOwnProperty(relatedModel)) {
+      var obj = relatedModels[relatedModel];
+      //console.log('relatedModel ' + relatedModel);
+      //console.log('obj ' + JSON.stringify(obj));
+      if (typeof obj != 'object') throw new Error('relatedModel key values expect object');
+      if (obj.id === undefined) throw new Error('relatedModel key values expect object with id key');
+      if (obj.model === undefined) throw new Error('relatedModel key values expect object with model key');
+      if (!(obj.id instanceof Attribute)) throw new Error('relatedModel id must be a Attribute');
+      if (!(obj.model instanceof Model)) throw new Error('relatedModel model must be a Model');
+    }
+  }
+  /**
+   * Check attributes
+   */
+  for (var i = 0; i < attributes.length; i++) {
+    var attribute = attributes[i];
+    if (!(attribute instanceof Attribute)) throw new Error('attribute array must contain Attributes');
+    if (!(attribute.model instanceof Attribute)) throw new Error('attribute array must contain Attributes with model references');
+  }
+}
+/**
+ * Methods
+ */
+View.prototype.toString = function () {
+  return this.primaryModel + ' View';
 };
 
 /**---------------------------------------------------------------------------------------------------------------------
@@ -2836,7 +2891,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.16',
+    version: '0.0.22',
     MongoStore: MongoStore
   };
 };
@@ -2932,7 +2987,7 @@ MongoStore.prototype.onConnect = function (location, callback, options) {
         }
       } else {
         if (userName) {
-          console.log('authenticate(%s,%s,%s)',userName, password, JSON.stringify(authenticateOptions));
+          //console.log('authenticate(%s,%s,%s)',userName, password, JSON.stringify(authenticateOptions));
           store.mongoDatabase.authenticate(userName, password, authenticateOptions, function (err, res) {
             if (err) {
               callback(store, err);
@@ -3147,6 +3202,14 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
 //      console.log('prop = ' + prop);
       if (list.model.getAttributeType(prop) == 'ID')
         mongoFilter[prop] = MongoStore._connection.mongo.ObjectID.createFromHexString(filter[prop]);
+      else if (list.model.getAttributeType(prop) == 'Date' && filter[prop] != null) {
+        //console.log('new date code ...');
+        var start = new Date(filter[prop]);
+        var end = new Date(filter[prop]);
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+        mongoFilter[prop] = {$gte: start, $lt: end};
+      }
       else
         mongoFilter[prop] = filter[prop];
     }
@@ -3159,7 +3222,17 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
       return;
     }
     if (order) {
-      collection.find({query: mongoFilter, $orderby: order}, findcallback);
+      var newOrder = {};
+      for (var o in order) {
+        if (order.hasOwnProperty(o)) {
+          var oo = o;
+          if (o=='id')
+            oo = '_id';
+          newOrder[oo] = order[o];
+        }
+      }
+      //console.log('newOrder: ' + JSON.stringify(newOrder));
+      collection.find({query: mongoFilter, $orderby: newOrder}, findcallback);
     } else {
       collection.find(mongoFilter, findcallback);
     }
