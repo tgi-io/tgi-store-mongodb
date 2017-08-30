@@ -319,15 +319,15 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
         });
     });
     spec.heading('model', function () {
-      spec.example('a reference to model', undefined, function () {
+      spec.xexample('a reference to model', undefined, function () {
         return new Attribute({name: 'derp'}).model; // undefined when not part of model
       });
-      spec.example('defined by model', 'I am a Model', function () {
+      spec.xexample('defined by model', 'I am a Model', function () {
         var attrib = new Attribute("Sue");
         new Model({attributes: [attrib]});
         return 'I am ' + attrib.model;
       });
-      spec.example('user example', 'You are a User', function () {
+      spec.xexample('user example', 'You are a User', function () {
         return 'You are ' + new User().attribute('name').model;
       });
 
@@ -504,9 +504,9 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
         this.shouldBeTrue(myBool.coerce(true) === true && myBool.coerce(1) === true);
         this.shouldBeTrue(myBool.coerce('y') && myBool.coerce('yEs') && myBool.coerce('t') && myBool.coerce('TRUE') && myBool.coerce('1'));
         this.shouldBeTrue(!((myBool.coerce('') || (myBool.coerce('yep')))));
-        //// Date {todo this will break in 2017}
-        this.shouldBeTrue(myDate.coerce('2/21/2016').getTime() === new Date('2/21/2016').getTime());
-        this.shouldBeTrue(myDate.coerce('2/21').getTime() === new Date('2/21/2016').getTime());
+        //// Date {todo this will break in 2018}
+        this.shouldBeTrue(myDate.coerce('2/21/2017').getTime() === new Date('2/21/2017').getTime());
+        this.shouldBeTrue(myDate.coerce('2/21').getTime() === new Date('2/21/2017').getTime());
 
         // TODO
         this.shouldThrowError(Error('coerce cannot determine appropriate value'), function () {
@@ -2647,7 +2647,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
         });
       }
     });
-    spec.heading('getList(list, filter, order)', function () {
+    spec.heading('getList(list, filter, [optional order], callback)', function () {
       spec.paragraph('This method will clear and populate the list with collection from store.  ' +
         'The **filter** property can be used to query the store.  ' +
         'The **order** property can specify the sort order of the list.  ' +
@@ -2657,11 +2657,41 @@ spec.runnerStoreMethods = function (SurrogateStore) {
           this.shouldThrowError(Error('argument must be a List'), function () {
             new SurrogateStore().getList();
           });
+          this.shouldThrowError(Error('List is View type use getViewList'), function () {
+            new SurrogateStore().getList(new List(new View(new Model(), {}, [])));
+          });
           this.shouldThrowError(Error('filter argument must be Object'), function () {
             new SurrogateStore().getList(new List(new Model()));
           });
           this.shouldThrowError(Error('callback required'), function () {
             new SurrogateStore().getList(new List(new Model()), []);
+          });
+          // See integration tests for examples of usage
+        });
+      } else {
+        if (services['isReady']) {
+          spec.example('returns a List populated from store', Error('Store does not provide getList'), function () {
+            return new SurrogateStore().getList();
+          });
+        }
+      }
+    });
+    spec.heading('getViewList(list, filter, [optional order], callback)', function () {
+      spec.paragraph('This method provides getList() for View type Lists.  ' +
+        '_See integration test for more info._');
+      if (services['isReady'] && services['canGetList']) {
+        spec.example('returns a List populated from store', undefined, function () {
+          this.shouldThrowError(Error('argument must be a List'), function () {
+            new SurrogateStore().getViewList();
+          });
+          this.shouldThrowError(Error('List is Model type use getList'), function () {
+            new SurrogateStore().getViewList(new List(new Model()));
+          });
+          this.shouldThrowError(Error('filter argument must be Object'), function () {
+            new SurrogateStore().getViewList(new List(new View(new Model(), {}, [])));
+          });
+          this.shouldThrowError(Error('callback required'), function () {
+            new SurrogateStore().getViewList(new List(new View(new Model(), {}, [])), []);
           });
           // See integration tests for examples of usage
         });
@@ -2684,13 +2714,16 @@ spec.runnerStoreMethods = function (SurrogateStore) {
         callback(true);
         return;
       }
-      self.Types = function (args) {
-        Model.call(this, args);
-        this.modelType = "_tempTypes";
-        this.attributes.push(new Attribute({name: 'String', type: 'String', value: 'cheese'}));
-        this.attributes.push(new Attribute({name: 'Date', type: 'Date', value: new Date()}));
-        this.attributes.push(new Attribute({name: 'Boolean', type: 'Boolean', value: true}));
-        this.attributes.push(new Attribute({name: 'Number', type: 'Number', value: 42}));
+      self.Types = function () {
+        Model.call(this, {
+          modelType: '_tempTypes',
+          attributes: [
+            new Attribute({name: 'String', type: 'String', value: 'cheese'}),
+            new Attribute({name: 'Date', type: 'Date', value: new Date()}),
+            new Attribute({name: 'Boolean', type: 'Boolean', value: true}),
+            new Attribute({name: 'Number', type: 'Number', value: 42})
+          ]
+        });
       };
       self.Types.prototype = Object.create(Model.prototype);
       self.types = new self.Types();
@@ -2709,7 +2742,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
         callback(true);
       });
     });
-    spec.example('CRUD (Create Read Update Delete) Exercise all store function for one store.', spec.asyncResults(true), function (callback) {
+    spec.xexample('CRUD (Create Read Update Delete) Exercise all store function for one store.', spec.asyncResults(true), function (callback) {
       var self = this;
       spec.integrationStore = new SurrogateStore();
       var storeBeingTested = spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
@@ -2723,22 +2756,35 @@ spec.runnerStoreMethods = function (SurrogateStore) {
       }
 
       // setup stooge class
-      self.Stooge = function (args) {
-        Model.call(this, args);
-        this.modelType = "_tempTest_Stooge";
-        this.attributes.push(new Attribute('name'));
+      self.Stooge = function () {
+        Model.call(this, {modelType: "_tempTest_Stooge", attributes: [new Attribute('name')]});
       };
-      self.Stooge.prototype = inheritPrototype(Model.prototype);
+      self.Stooge.prototype = Object.create(Model.prototype);
 
       // setup StoogeLine class to track their dialogue in script
-      self.StoogeLine = function (args) {
-        Model.call(this, args);
-        this.modelType = "_tempTest_StoogeLines";
-        this.attributes.push(new Attribute({name: 'Scene', type: 'Number'}));
-        this.attributes.push(new Attribute({name: 'StoogeID', type: 'ID'}));
-        this.attributes.push(new Attribute({name: 'Line', type: 'String'}));
+      self.StoogeLine = function () {
+        Model.call(this, {
+          modelType: "_tempTest_StoogeLines",
+          attributes: [
+            new Attribute({name: 'SetID', type: 'ID'}),
+            new Attribute({name: 'Scene', type: 'Number'}),
+            new Attribute({name: 'StoogeID', type: 'ID'}),
+            new Attribute({name: 'Line', type: 'String'})
+          ]
+        });
       };
       self.StoogeLine.prototype = inheritPrototype(Model.prototype);
+
+      // setup StoogeSet class to track their dialogue in script
+      self.StoogeSet = function () {
+        Model.call(this, {
+          modelType: "_tempTest_StoogeSets",
+          attributes: [
+            new Attribute({name: 'name'})
+          ]
+        });
+      };
+      self.StoogeSet.prototype = inheritPrototype(Model.prototype);
 
       // create initial stooges
       self.moe = new self.Stooge();
@@ -2940,51 +2986,129 @@ spec.runnerStoreMethods = function (SurrogateStore) {
         self.shouldBeTrue(list.get('name') == 'Larry', 'larry');
         list.moveNext();
         self.shouldBeTrue(list.get('name') == 'Moe', 'moe');
-        createView();
+        createSets();
+      }
+
+      /**
+       * Create 2 sets for test (this real life anology is wacked now)
+       */
+      function createSets() {
+        self.indoorSet = new self.StoogeSet();
+        self.indoorSet.set('name', 'indoor');
+        self.desertSet = new self.StoogeSet();
+        self.desertSet.set('name', 'desert');
+        spec.integrationStore.putModel(self.indoorSet, function (model, error) {
+          if (typeof error != 'undefined') {
+            callback(error);
+          } else {
+            spec.integrationStore.putModel(self.desertSet, function (model, error) {
+              if (typeof error != 'undefined') {
+                callback(error);
+              } else {
+                createLines();
+              }
+            });
+          }
+        });
       }
 
       /**
        * Prepare the rest of the store for testing getList with View type list
        */
-      function createView() {
+      function createLines() {
         var moesLine = new self.StoogeLine();
-        moesLine.set('Scene',1);
-        moesLine.set('StoogeID',self.moe.get('id'));
-        moesLine.set('Line','To be or not to be?');
-
+        moesLine.set('Scene', 1);
+        moesLine.set('SetID', self.indoorSet.get('id'));
+        moesLine.set('StoogeID', self.moe.get('id'));
+        moesLine.set('Line', 'To be or not to be?');
         var larrysLine = new self.StoogeLine();
-        larrysLine.set('Scene',1);
-        larrysLine.set('StoogeID',self.larry.get('id'));
-        larrysLine.set('Line','That is the question!');
-
+        larrysLine.set('Scene', 2);
+        larrysLine.set('SetID', self.desertSet.get('id'));
+        larrysLine.set('StoogeID', self.larry.get('id'));
+        larrysLine.set('Line', 'That is the question!');
         spec.integrationStore.putModel(moesLine, function (model, error) {
           if (typeof error != 'undefined') {
             callback(error);
           } else {
-            spec.integrationStore.putModel(moesLine, function (model, error) {
+            spec.integrationStore.putModel(larrysLine, function (model, error) {
               if (typeof error != 'undefined') {
                 callback(error);
               } else {
-                callback(true);
+                createView();
               }
             });
           }
         });
-        //console.log('dis store be ' + spec.integrationStore);
-        //console.log('moe ID ' + self.moe.get('id'));
-        //console.log('larry ID ' + self.larry.get('id'));
-        //callback(true);
       }
 
+      /**
+       * create View
+       */
+      function createView() {
+        var set = new self.StoogeSet();
+        var line = new self.StoogeLine();
+        var stooge = new self.Stooge();
+        var scriptView = new View(line,
+          {
+            'Stooge': {id: line.attribute('StoogeID'), model: stooge},
+            'Set': {id: line.attribute('SetID'), model: set}
+          },
+          [
+            set.attribute('name'),
+            line.attribute('Scene'),
+            stooge.attribute('name'),
+            line.attribute('Line')
+          ]);
 
-      //// setup StoogeLine class to track their dialogue in script
-      //self.StoogeLine = function (args) {
-      //  Model.call(this, args);
-      //  this.modelType = "_tempTest_StoogeLines";
-      //  this.attributes.push(new Attribute({name: 'Scene', type: 'Number'}));
-      //  this.attributes.push(new Attribute({name: 'StoogeID', type: 'ID'}));
-      //  this.attributes.push(new Attribute({name: 'Line', type: 'String'}));
-      //};
+
+        // Now create a list from view
+        var list = new List(scriptView);
+        //callback(true);
+        spec.integrationStore.getViewList(list, {}, {Scene: 1}, viewListReady);
+      }
+
+      /**
+       * callback after list created from store
+       */
+      function viewListReady(list, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        if (!list.moveFirst()) {
+          callback(Error('no records!'));
+          return;
+        }
+
+        var set = new self.StoogeSet();
+        var stooge = new self.Stooge();
+
+        self.shouldBeTrue('indoor' == list.get(set.modelType + '.' + 'name'));
+        self.shouldBeTrue('1' == list.get('Scene'));
+        self.shouldBeTrue('Moe' == list.get(stooge.modelType + '.' + 'name'));
+        self.shouldBeTrue('To be or not to be?' == list.get('Line'));
+        //console.log('Set ' + list.get(set.modelType + '.' + 'name'));
+        //console.log('Scene ' + list.get('Scene'));
+        //console.log('Stooge ' + list.get(stooge.modelType + '.' + 'name'));
+        //console.log('Line ' + list.get('Line'));
+
+        if (!list.moveNext()) {
+          callback(Error('no more records!'));
+          return;
+        }
+
+        self.shouldBeTrue('desert' == list.get(set.modelType + '.' + 'name'));
+        self.shouldBeTrue('2' == list.get('Scene'));
+        self.shouldBeTrue('Larry' == list.get(stooge.modelType + '.' + 'name'));
+        self.shouldBeTrue('That is the question!' == list.get('Line'));
+        //console.log('Set ' + list.get(set.modelType + '.' + 'name'));
+        //console.log('Scene ' + list.get('Scene'));
+        //console.log('Stooge ' + list.get(stooge.modelType + '.' + 'name'));
+        //console.log('Line ' + list.get('Line'));
+
+        callback(true);
+      }
+
 
     });
   });
