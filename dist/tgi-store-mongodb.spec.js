@@ -58,7 +58,7 @@ spec.test('lib/tgi-spec-intro', 'tgi-core', 'Core Repository', function (callbac
   spec.example('TGI.CORE function exposes library', undefined, function () {
     this.log(TGI.CORE().version);
   });
-  spec.index('##Constructors');
+  spec.index('Constructors');
 });
 
 /**---------------------------------------------------------------------------------------------------------------------
@@ -505,8 +505,8 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
         this.shouldBeTrue(myBool.coerce('y') && myBool.coerce('yEs') && myBool.coerce('t') && myBool.coerce('TRUE') && myBool.coerce('1'));
         this.shouldBeTrue(!((myBool.coerce('') || (myBool.coerce('yep')))));
         //// Date {todo this will break in 2018}
-        this.shouldBeTrue(myDate.coerce('2/21/2017').getTime() === new Date('2/21/2017').getTime());
-        this.shouldBeTrue(myDate.coerce('2/21').getTime() === new Date('2/21/2017').getTime());
+        this.shouldBeTrue(myDate.coerce('2/21/2018').getTime() === new Date('2/21/2018').getTime());
+        this.shouldBeTrue(myDate.coerce('2/21').getTime() === new Date('2/21/2018').getTime());
 
         // TODO
         this.shouldThrowError(Error('coerce cannot determine appropriate value'), function () {
@@ -2742,7 +2742,8 @@ spec.runnerStoreMethods = function (SurrogateStore) {
         callback(true);
       });
     });
-    spec.xexample('CRUD (Create Read Update Delete) Exercise all store function for one store.', spec.asyncResults(true), function (callback) {
+    // broken!!!
+    spec.example('CRUD (Create Read Update Delete) Exercise all store function for one store.', spec.asyncResults(true), function (callback) {
       var self = this;
       spec.integrationStore = new SurrogateStore();
       var storeBeingTested = spec.integrationStore.name + ' ' + spec.integrationStore.storeType;
@@ -3060,10 +3061,8 @@ spec.runnerStoreMethods = function (SurrogateStore) {
             line.attribute('Line')
           ]);
 
-
         // Now create a list from view
         var list = new List(scriptView);
-        //callback(true);
         spec.integrationStore.getViewList(list, {}, {Scene: 1}, viewListReady);
       }
 
@@ -3082,30 +3081,18 @@ spec.runnerStoreMethods = function (SurrogateStore) {
 
         var set = new self.StoogeSet();
         var stooge = new self.Stooge();
-
         self.shouldBeTrue('indoor' == list.get(set.modelType + '.' + 'name'));
         self.shouldBeTrue('1' == list.get('Scene'));
         self.shouldBeTrue('Moe' == list.get(stooge.modelType + '.' + 'name'));
         self.shouldBeTrue('To be or not to be?' == list.get('Line'));
-        //console.log('Set ' + list.get(set.modelType + '.' + 'name'));
-        //console.log('Scene ' + list.get('Scene'));
-        //console.log('Stooge ' + list.get(stooge.modelType + '.' + 'name'));
-        //console.log('Line ' + list.get('Line'));
-
         if (!list.moveNext()) {
           callback(Error('no more records!'));
           return;
         }
-
         self.shouldBeTrue('desert' == list.get(set.modelType + '.' + 'name'));
         self.shouldBeTrue('2' == list.get('Scene'));
         self.shouldBeTrue('Larry' == list.get(stooge.modelType + '.' + 'name'));
         self.shouldBeTrue('That is the question!' == list.get('Line'));
-        //console.log('Set ' + list.get(set.modelType + '.' + 'name'));
-        //console.log('Scene ' + list.get('Scene'));
-        //console.log('Stooge ' + list.get(stooge.modelType + '.' + 'name'));
-        //console.log('Line ' + list.get('Line'));
-
         callback(true);
       }
 

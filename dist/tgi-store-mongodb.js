@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.43',
+      version: '0.4.45',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -1149,9 +1149,9 @@ var Model = function (args) {
   // Validations done
   this._eventListeners = [];
   this._errorConditions = {};
-  //for (i = 0; i < this.attributes.length; i++) {
-  //  this.attributes[i].model = this;
-  //}
+  for (i = 0; i < this.attributes.length; i++) {
+   this.attributes[i].model = this;
+  }
 };
 Model._ModelConstructor = {};
 /**
@@ -3027,7 +3027,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.23',
+    version: '0.0.24',
     MongoStore: MongoStore
   };
 };

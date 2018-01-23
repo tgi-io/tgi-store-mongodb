@@ -1,6 +1,6 @@
 {
   "name": "tgi-store-mongodb",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "MongoDBStore",
   "contributors": [
     {
@@ -9,10 +9,10 @@
     }
   ],
   "dependencies": {
-    "mongodb": "*",
+    "mongodb": "^2.0.45",
+    "tgi-core": "*",
     "tgi-spec": "*",
-    "tgi-utility": "*",
-    "tgi-core": "*"
+    "tgi-utility": "*"
   },
   "scripts": {
     "test": "node spec/node-runner.js"
@@ -32,13 +32,14 @@
   "author": "Sean Smith <sean@tgicloud.com>",
   "license": "MIT",
   "devDependencies": {
-    "gulp": "*",
+    "graceful-fs": "^3.0.11",
+    "gulp": "^3.9.1",
     "gulp-concat": "*",
     "gulp-jshint": "*",
     "gulp-rename": "*",
     "gulp-uglify": "*",
     "jshint": "*",
     "jshint-stylish": "*",
-    "minimatch": "*"
+    "minimatch": "^3.0.2"
   }
 }
